@@ -1,0 +1,89 @@
+@model Logic.Model.PagedResult<Database.Entities.Notification>
+@{
+    ViewData["Title"] = "My Notifications";
+    bool? readStatus = ViewBag.ReadStatus;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">My Notifications</h1>
+    <div class="saps-breadcrumb">Home / Notifications</div>
+</div>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap align-items-center">
+        <div class="saps-field-group" style="max-width: 200px;">
+            <i class="bi bi-funnel"></i>
+            <select name="readStatus">
+                <option value="">All</option>
+                <option value="false" selected="@(readStatus == false ? "selected" : null)">Unread only</option>
+                <option value="true" selected="@(readStatus == true ? "selected" : null)">Read only</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (readStatus != null)
+        {
+            <a asp-controller="NotificationsPage" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-bell"></i>
+            @(readStatus == null ? "You have no notifications." : "No notifications match that filter.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Message</th>
+                        <th>Sent</th>
+                        <th>Read</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var notification in Model.Items)
+                    {
+                        <tr class="@(notification.ReadStatus ? "" : "table-warning")">
+                            <td>@notification.Message</td>
+                            <td>@notification.SentDate.ToLocalTime()</td>
+                            <td>
+                                @if (notification.ReadStatus)
+                                {
+                                    <span class="badge text-bg-secondary"><i class="bi bi-check2"></i> Read</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-primary"><i class="bi bi-envelope-fill"></i> Unread</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!notification.ReadStatus)
+                                {
+                                    <form asp-controller="NotificationsPage" asp-action="MarkAsRead" asp-route-id="@notification.Id" method="post">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-check2-square"></i> Mark as Read
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "NotificationsPage", Action = "Index", Page = Model.Page, TotalPages = Model.TotalPages,
+        RouteValues = readStatus == null ? new() : new() { ["readStatus"] = readStatus.ToString()!.ToLowerInvariant() }
+    })" />
+}

@@ -1,0 +1,75 @@
+@model ReportDetailsViewModel
+@{
+    ViewData["Title"] = "Report Details";
+    var report = Model.Report;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Preliminary Report @report.ReferenceNumber</h1>
+    <div class="saps-breadcrumb">Home / Report @report.ReferenceNumber</div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span><i class="bi bi-file-earmark-text"></i> Report Details</span>
+                <span class="badge @EReportStatus.GetBadgeClass(report.StatusId)">@EReportStatus.GetName(report.StatusId)</span>
+            </div>
+            <dl class="row p-4 mb-0">
+                <dt class="col-sm-3 text-muted">Incident Type</dt>
+                <dd class="col-sm-9">@report.IncidentType</dd>
+
+                <dt class="col-sm-3 text-muted">Incident Date</dt>
+                <dd class="col-sm-9">@report.IncidentDate.ToLocalTime()</dd>
+
+                <dt class="col-sm-3 text-muted">Location</dt>
+                <dd class="col-sm-9">@report.IncidentLocation</dd>
+
+                <dt class="col-sm-3 text-muted">Description</dt>
+                <dd class="col-sm-9">@report.IncidentDescription</dd>
+
+                @if (!string.IsNullOrWhiteSpace(report.SupportingInfo))
+                {
+                    <dt class="col-sm-3 text-muted">Supporting Info</dt>
+                    <dd class="col-sm-9">@report.SupportingInfo</dd>
+                }
+
+                <dt class="col-sm-3 text-muted">Submitted</dt>
+                <dd class="col-sm-9">@report.SubmissionTimestamp.ToLocalTime()</dd>
+
+                @if (report.NavNearestStation != null)
+                {
+                    <dt class="col-sm-3 text-muted">Routed To</dt>
+                    <dd class="col-sm-9"><i class="bi bi-geo-alt"></i> @report.NavNearestStation.StationName</dd>
+                }
+            </dl>
+        </div>
+
+        @if (Model.CanConvert)
+        {
+            <div class="card saps-card mt-4">
+                <div class="saps-form-card-header">
+                    <h2 class="h5 mb-1"><i class="bi bi-folder-plus text-primary"></i> Open Official Docket</h2>
+                    <p class="text-muted small mb-0">Reviewing and accepting this report registers it as an official case docket linked to this reference.</p>
+                </div>
+                <form asp-controller="Reports" asp-action="Convert" asp-route-id="@report.Id" method="post">
+                    <div class="p-4">
+                        <label asp-for="Convert.CasNumber" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-hash"></i>
+                            <input asp-for="Convert.CasNumber" placeholder="Optional" />
+                        </div>
+                    </div>
+                    <div class="saps-form-card-footer">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-folder-plus"></i> Open Docket</button>
+                    </div>
+                </form>
+            </div>
+        }
+        else if (report.NavDocket != null)
+        {
+            <p class="mt-4"><a asp-controller="Dockets" asp-action="Details" asp-route-id="@report.NavDocket.Id" class="btn btn-secondary"><i class="bi bi-folder2-open"></i> View Docket</a></p>
+        }
+    </div>
+</div>

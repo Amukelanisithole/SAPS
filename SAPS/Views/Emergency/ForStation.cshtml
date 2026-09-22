@@ -1,0 +1,65 @@
+@model Logic.Model.PagedResult<Database.Entities.EmergencyAlert>
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Emergency Alerts";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Emergency Alerts At My Station</h1>
+    <div class="saps-breadcrumb">Home / Emergency Alerts</div>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-shield-check"></i>
+            No active emergency alerts for your station right now.
+        </div>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-column gap-3">
+        @foreach (var alert in Model.Items)
+        {
+            <div class="card" style="border: 2px solid #dc3545;">
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <div>
+                            <span class="badge text-bg-danger mb-1"><i class="bi bi-broadcast"></i> EMERGENCY</span>
+                            <h2 class="h5 mb-0">@(alert.NavComplainant?.FullName ?? "Unknown complainant")</h2>
+                        </div>
+                        <span class="text-muted small">@alert.SubmissionTimestamp.ToLocalTime().ToString("dd MMM yyyy, HH:mm:ss")</span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(alert.Message))
+                    {
+                        <p class="mb-2" style="white-space:pre-wrap;">@alert.Message</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-2">No additional message was provided.</p>
+                    }
+
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-geo-alt"></i> @alert.Latitude.ToString("F5"), @alert.Longitude.ToString("F5")
+                        &mdash; <a href="https://www.openstreetmap.org/?mlat=@alert.Latitude&mlon=@alert.Longitude&zoom=16" target="_blank" rel="noopener">view on map</a>
+                        @if (!string.IsNullOrWhiteSpace(alert.NavComplainant?.PhoneNumber))
+                        {
+                            <span>&mdash; <a href="tel:@alert.NavComplainant.PhoneNumber">@alert.NavComplainant.PhoneNumber</a></span>
+                        }
+                    </p>
+
+                    <form asp-controller="Emergency" asp-action="Acknowledge" asp-route-id="@alert.Id" method="post" data-confirm="Acknowledge this alert?" data-confirm-text="The complainant will be notified that an officer has seen it." data-confirm-button="Yes, acknowledge">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle-fill"></i> Acknowledge</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "Emergency", Action = "ForStation", Page = Model.Page, TotalPages = Model.TotalPages
+    })" />
+}

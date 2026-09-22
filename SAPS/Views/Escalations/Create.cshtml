@@ -1,0 +1,44 @@
+@model Logic.DTO.EscalationDTO
+@{
+    ViewData["Title"] = "Escalate Case";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Escalate Docket #@Model.DocketId</h1>
+    <div class="saps-breadcrumb"><a asp-controller="Dockets" asp-action="Details" asp-route-id="@Model.DocketId">Docket #@Model.DocketId</a> / Escalate</div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card saps-card gold">
+            <div class="saps-form-card-header">
+                <h2 class="h5 mb-1"><i class="bi bi-exclamation-octagon-fill text-warning"></i> Raise Escalation</h2>
+                <p class="text-muted small mb-0">Use this if you feel this case is unresolved or has been handled poorly. It will be raised directly with the Station Commander.</p>
+            </div>
+
+            <form asp-controller="Escalations" asp-action="Create" method="post">
+                <div class="p-4">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <input asp-for="DocketId" type="hidden" />
+                    <div class="mb-0">
+                        <label asp-for="Description" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-chat-square-text"></i>
+                            <textarea asp-for="Description" rows="5" placeholder="Describe why this case needs to be escalated"></textarea>
+                        </div>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="saps-form-card-footer">
+                    <a asp-controller="Dockets" asp-action="Details" asp-route-id="@Model.DocketId" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-warning"><i class="bi bi-exclamation-octagon-fill"></i> Lodge Escalation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

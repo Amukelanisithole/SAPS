@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Verify Email";
+    var success = ViewBag.Success == true;
+    var message = ViewBag.Message as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card saps-card p-4">
+            <div class="card-body text-center">
+                @if (success)
+                {
+                    <i class="bi bi-patch-check-fill" style="font-size: 2.5rem; color: #22c55e;"></i>
+                    <h1 class="h3 mt-2">Email Verified</h1>
+                }
+                else
+                {
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.5rem; color: #dc3545;"></i>
+                    <h1 class="h3 mt-2">Verification Failed</h1>
+                }
+                <p class="text-muted mt-2">@message</p>
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Log In</a>
+                    @if (!success)
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-outline-secondary">Register Again</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

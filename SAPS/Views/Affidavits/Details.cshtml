@@ -1,0 +1,157 @@
+@model AffidavitDetailsViewModel
+@{
+    ViewData["Title"] = "Affidavit Details";
+    var affidavit = Model.Affidavit;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Affidavit @affidavit.ReferenceNumber</h1>
+    <div class="saps-breadcrumb">Home / Affidavit @affidavit.ReferenceNumber</div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span><i class="bi bi-file-earmark-text"></i> Deponent Details</span>
+                <span class="badge @EAffidavitStatus.GetBadgeClass(affidavit.StatusId)">@EAffidavitStatus.GetName(affidavit.StatusId)</span>
+            </div>
+            <dl class="row p-4 mb-0">
+                <dt class="col-sm-3 text-muted">Full Name</dt>
+                <dd class="col-sm-9">@affidavit.FullName</dd>
+
+                <dt class="col-sm-3 text-muted">ID Number</dt>
+                <dd class="col-sm-9">@affidavit.IdNumber</dd>
+
+                <dt class="col-sm-3 text-muted">Age</dt>
+                <dd class="col-sm-9">@affidavit.Age</dd>
+
+                <dt class="col-sm-3 text-muted">Working Address</dt>
+                <dd class="col-sm-9">@affidavit.WorkingAddress</dd>
+
+                <dt class="col-sm-3 text-muted">Telephone</dt>
+                <dd class="col-sm-9">(w) @(affidavit.TelWork ?? "-")&nbsp; (h) @(affidavit.TelHome ?? "-")&nbsp; (cell) @affidavit.TelCell</dd>
+
+                <dt class="col-sm-3 text-muted">Declaration</dt>
+                <dd class="col-sm-9" style="white-space:pre-wrap;">@affidavit.DeclarationText</dd>
+
+                <dt class="col-sm-3 text-muted">Oath</dt>
+                <dd class="col-sm-9">@(affidavit.ObjectionToOath ? "Deponent has an objection to taking the prescribed oath." : "No objection to taking the prescribed oath.")</dd>
+
+                <dt class="col-sm-3 text-muted">Submitted</dt>
+                <dd class="col-sm-9">@affidavit.SubmissionTimestamp.ToLocalTime()</dd>
+
+                @if (affidavit.NavNearestStation != null)
+                {
+                    <dt class="col-sm-3 text-muted">Routed To</dt>
+                    <dd class="col-sm-9"><i class="bi bi-geo-alt"></i> @affidavit.NavNearestStation.StationName</dd>
+                }
+
+                <dt class="col-sm-3 text-muted">Identity Photo</dt>
+                <dd class="col-sm-9">
+                    <img src="@Url.Action("VerificationPhoto", "Affidavits", new { id = affidavit.Id })" alt="Identity verification photo" style="max-width:160px; border-radius:.5rem;" class="border" />
+                </dd>
+
+                @if (!string.IsNullOrEmpty(affidavit.IdDocumentPath))
+                {
+                    <dt class="col-sm-3 text-muted">ID Document</dt>
+                    <dd class="col-sm-9">
+                        @if (affidavit.IdDocumentContentType == "application/pdf")
+                        {
+                            <a asp-controller="Affidavits" asp-action="IdDocument" asp-route-id="@affidavit.Id" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-earmark-pdf"></i> View ID Document (PDF)
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Affidavits" asp-action="IdDocument" asp-route-id="@affidavit.Id" target="_blank">
+                                <img src="@Url.Action("IdDocument", "Affidavits", new { id = affidavit.Id })" alt="ID document" style="max-width:160px; border-radius:.5rem;" class="border" />
+                            </a>
+                        }
+                    </dd>
+                }
+            </dl>
+        </div>
+
+        @if (affidavit.StatusId == EAffidavitStatus.Stamped)
+        {
+            <div class="card saps-card mt-4">
+                <div class="saps-panel-header"><span><i class="bi bi-patch-check-fill text-success"></i> Certified</span></div>
+                <dl class="row p-4 mb-0">
+                    <dt class="col-sm-3 text-muted">Certified By</dt>
+                    <dd class="col-sm-9">@affidavit.StampedByOfficerName (@affidavit.StampedByOfficerRank, Force No. @affidavit.StampedByOfficerForceNumber)</dd>
+
+                    <dt class="col-sm-3 text-muted">Certified On</dt>
+                    <dd class="col-sm-9">@affidavit.StampedDate?.ToLocalTime()</dd>
+                </dl>
+                <div class="saps-form-card-footer">
+                    <a asp-controller="Affidavits" asp-action="DownloadPdf" asp-route-id="@affidavit.Id" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> Download Stamped Affidavit
+                    </a>
+                </div>
+            </div>
+        }
+        else if (affidavit.StatusId == EAffidavitStatus.Rejected)
+        {
+            <div class="card saps-card mt-4">
+                <div class="saps-panel-header"><span><i class="bi bi-x-circle-fill text-danger"></i> Rejected</span></div>
+                <div class="p-4">
+                    <p class="mb-0"><strong>Reason:</strong> @affidavit.RejectionReason</p>
+                </div>
+            </div>
+        }
+
+        @if (Model.CanAction)
+        {
+            <div class="card saps-card mt-4">
+                <div class="saps-form-card-header">
+                    <h2 class="h5 mb-1"><i class="bi bi-stamp text-primary"></i> Certify This Affidavit</h2>
+                    <p class="text-muted small mb-0">Standing in for the Commissioner of Oaths — certifying generates the officially stamped PDF and notifies the deponent.</p>
+                </div>
+                <form asp-controller="Affidavits" asp-action="Stamp" asp-route-id="@affidavit.Id" method="post" data-confirm="Certify this affidavit?" data-confirm-text="This cannot be undone." data-confirm-button="Yes, certify">
+                    <div class="p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Stamp.ForceNumber" class="form-label small fw-semibold text-muted"></label>
+                                <div class="saps-field-group">
+                                    <i class="bi bi-hash"></i>
+                                    <input asp-for="Stamp.ForceNumber" />
+                                </div>
+                                <span asp-validation-for="Stamp.ForceNumber" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Stamp.Rank" class="form-label small fw-semibold text-muted"></label>
+                                <div class="saps-field-group">
+                                    <i class="bi bi-shield"></i>
+                                    <input asp-for="Stamp.Rank" />
+                                </div>
+                                <span asp-validation-for="Stamp.Rank" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="saps-form-card-footer">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-patch-check-fill"></i> Certify &amp; Stamp</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card saps-card mt-4">
+                <div class="saps-form-card-header">
+                    <h2 class="h5 mb-1"><i class="bi bi-x-octagon text-danger"></i> Reject This Affidavit</h2>
+                </div>
+                <form asp-controller="Affidavits" asp-action="Reject" asp-route-id="@affidavit.Id" method="post" data-confirm="Reject this affidavit?" data-confirm-text="This cannot be undone." data-confirm-button="Yes, reject">
+                    <div class="p-4">
+                        <label class="form-label small fw-semibold text-muted">Reason</label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-card-text"></i>
+                            <textarea name="reason" rows="3" required placeholder="Explain why this affidavit is being rejected"></textarea>
+                        </div>
+                    </div>
+                    <div class="saps-form-card-footer">
+                        <button type="submit" class="btn btn-outline-danger"><i class="bi bi-x-octagon"></i> Reject</button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,142 @@
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Privacy Policy</h1>
+    <div class="saps-breadcrumb">Home / Privacy</div>
+</div>
+
+<p class="text-muted mb-4">
+    Last updated: @DateTime.Now.ToString("d MMMM yyyy").
+    This policy explains what personal information the SAPS Crime Pre-Reporting System collects, why, who can see
+    it, and the rights you have over it under the Protection of Personal Information Act, 2013 (POPIA).
+</p>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-info-circle"></i> 1. What This System Is</span></div>
+    <div class="p-4">
+        <p class="mb-0">
+            The SAPS Crime Pre-Reporting System lets a member of the public submit a preliminary record of a
+            crime before it is opened as an official docket at a police station, and lets SAPS personnel review,
+            process, and escalate that record. This system is <strong>not an emergency service</strong> — if
+            anyone is in immediate danger, contact your local emergency services directly instead of using this
+            site.
+        </p>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-collection"></i> 2. Information We Collect</span></div>
+    <div class="p-4">
+        <h2 class="h6">Account information</h2>
+        <p>When you register or an administrator creates an account for you, we collect your full name, South
+            African ID number, email address, phone number, and a password (which we never store — see
+            "How We Protect Your Information" below).</p>
+
+        <h2 class="h6">Report information</h2>
+        <p>When you submit a preliminary report, we collect the incident type, description, date, the location
+            you describe in text, and — with your device's permission — the GPS coordinates of your current
+            location. Those coordinates are used only to find and route your report to the nearest real SAPS
+            station, using OpenStreetMap's public station data and geocoding services (Overpass and Nominatim).
+            This means your coordinates are sent to OpenStreetMap's servers as part of that lookup, in addition
+            to our own.</p>
+
+        <h2 class="h6">Usage and security information</h2>
+        <p class="mb-0">We record login timestamps, the IP address associated with certain actions, and an audit
+            trail entry for sensitive actions (registrations, logins, docket changes, escalations, referrals, and
+            user/account management) so that every change to a case can be traced back to who made it and when.</p>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-bullseye"></i> 3. Why We Collect It</span></div>
+    <div class="p-4">
+        <ul class="mb-0">
+            <li>To verify who you are and restrict your account to the correct role and permissions.</li>
+            <li>To route your preliminary report to the SAPS station nearest to where the incident was reported.</li>
+            <li>To let you and SAPS personnel track a case from initial report through docket, referral, and escalation.</li>
+            <li>To notify you of status changes to your report, docket, or escalation.</li>
+            <li>To maintain the audit trail SAPS is required to keep for case handling and accountability.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-people"></i> 4. Who Can See Your Information</span></div>
+    <div class="p-4">
+        <p>Access is restricted by role, and every access is logged:</p>
+        <ul class="mb-0">
+            <li><strong>Complainants</strong> can see only their own reports, dockets, escalations, and notifications.</li>
+            <li><strong>SAPS Officers</strong> can see preliminary reports and dockets at their assigned station.</li>
+            <li><strong>Station Commanders</strong> can see dockets and escalations at their assigned station.</li>
+            <li><strong>System Administrators</strong> manage user accounts and stations, but do not need or
+                routinely access case content to do so.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-shield-lock"></i> 5. How We Protect Your Information</span></div>
+    <div class="p-4">
+        <ul class="mb-0">
+            <li>Passwords are hashed with bcrypt before storage — we cannot see or recover your actual password,
+                and a password reset always requires proving control of your account's email.</li>
+            <li>All traffic to this site is encrypted in transit (HTTPS).</li>
+            <li>Accounts are temporarily locked after repeated failed login attempts.</li>
+            <li>Every sensitive action is written to an audit log that administrators can review but not alter
+                through the application.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-clock-history"></i> 6. How Long We Keep It</span></div>
+    <div class="p-4 mb-0">
+        <p class="mb-0">
+            We retain your account and case information for as long as your account is active and your case
+            remains open, and thereafter for as long as SAPS's record-keeping obligations under South African law
+            require. Deactivating an account does not delete the case history associated with it, since that
+            history may itself form part of an official record.
+        </p>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-file-earmark-check"></i> 7. Your Rights Under POPIA</span></div>
+    <div class="p-4">
+        <p>Under the Protection of Personal Information Act, 2013, you have the right to:</p>
+        <ul class="mb-3">
+            <li>Ask what personal information we hold about you and request a copy of it.</li>
+            <li>Ask us to correct personal information that is inaccurate or out of date.</li>
+            <li>Object to how your information is processed, or ask us to delete it — subject to our legal
+                obligation to retain official case records.</li>
+        </ul>
+        <p class="mb-0">To exercise any of these rights, contact your system administrator through the details below.</p>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-cookie"></i> 8. Cookies</span></div>
+    <div class="p-4 mb-0">
+        <p class="mb-0">
+            This site uses a session cookie to keep you signed in, and stores your light/dark theme preference in
+            your browser's local storage. We do not use third-party advertising or tracking cookies.
+        </p>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header"><span><i class="bi bi-envelope"></i> 9. Contact Us</span></div>
+    <div class="p-4 mb-0">
+        <p class="mb-0">
+            Questions about this policy, or requests relating to your personal information, can be directed to
+            your station's System Administrator, or to <a href="mailto:privacy@saps.local">privacy@saps.local</a>.
+        </p>
+    </div>
+</div>
+
+<p class="text-muted small">
+    We may update this policy from time to time as the system changes. Material changes will be reflected in the
+    "Last updated" date above.
+</p>

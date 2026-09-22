@@ -1,0 +1,84 @@
+@model Logic.Model.PagedResult<Database.Entities.Affidavit>
+@{
+    ViewData["Title"] = "My Affidavits";
+    long? statusId = ViewBag.StatusId;
+    var statusOptions = new (long Id, string Name)[] {
+        (EAffidavitStatus.Submitted, "Submitted"),
+        (EAffidavitStatus.Stamped, "Stamped"),
+        (EAffidavitStatus.Rejected, "Rejected"),
+    };
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">My Affidavits</h1>
+    <div class="saps-breadcrumb">Home / My Affidavits</div>
+</div>
+
+<p><a asp-controller="Affidavits" asp-action="Submit" class="btn btn-primary"><i class="bi bi-file-earmark-plus-fill"></i> Submit a New Affidavit</a></p>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap align-items-center">
+        <div class="saps-field-group" style="max-width: 240px;">
+            <i class="bi bi-funnel"></i>
+            <select name="statusId">
+                <option value="">All Statuses</option>
+                @foreach (var opt in statusOptions)
+                {
+                    <option value="@opt.Id" selected="@(statusId == opt.Id ? "selected" : null)">@opt.Name</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (statusId != null)
+        {
+            <a asp-controller="Affidavits" asp-action="Mine" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-file-earmark-check"></i>
+            @(statusId == null ? "You haven't submitted any affidavits yet." : "No affidavits match that status.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Reference Number</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var affidavit in Model.Items)
+                    {
+                        <tr>
+                            <td>@affidavit.ReferenceNumber</td>
+                            <td>@affidavit.SubmissionTimestamp.ToLocalTime()</td>
+                            <td><span class="badge @EAffidavitStatus.GetBadgeClass(affidavit.StatusId)">@EAffidavitStatus.GetName(affidavit.StatusId)</span></td>
+                            <td>
+                                <a asp-controller="Affidavits" asp-action="Details" asp-route-id="@affidavit.Id" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "Affidavits", Action = "Mine", Page = Model.Page, TotalPages = Model.TotalPages,
+        RouteValues = statusId == null ? new() : new() { ["statusId"] = statusId.ToString()! }
+    })" />
+}

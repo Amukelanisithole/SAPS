@@ -1,0 +1,131 @@
+@model Logic.DTO.EmergencyAlertDTO
+@{
+    ViewData["Title"] = "Emergency";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isComplainant = isAuthenticated && User.GetRoleName() == "Complainant";
+    // A logged-in visitor should stay inside their normal dashboard shell
+    // (sidebar, topbar) rather than dropping back to the public site chrome —
+    // only an anonymous visitor sees the plain public layout, since they
+    // have no dashboard to return to.
+    Layout = isAuthenticated ? "_DashboardLayout" : "_Layout";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">In an Emergency</h1>
+    <div class="saps-breadcrumb">Home / Emergency</div>
+</div>
+
+<div class="card mb-4" style="border: 2px solid #dc3545;">
+    <div class="p-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-exclamation-triangle-fill text-danger fs-2"></i>
+            <h2 class="h4 mb-0">If anyone is in immediate danger, call now</h2>
+        </div>
+        <p class="text-muted mb-4">
+            This website is <strong>not monitored in real time</strong>. It cannot dispatch help. If you or
+            anyone else is in immediate danger, use one of the numbers below &mdash; don't wait on anything
+            else on this page.
+        </p>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="tel:10111" class="btn btn-danger btn-lg w-100 py-3">
+                    <div class="fs-4 fw-bold">10111</div>
+                    <div class="small">SAPS Emergency</div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="tel:112" class="btn btn-danger btn-lg w-100 py-3">
+                    <div class="fs-4 fw-bold">112</div>
+                    <div class="small">From any cellphone</div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="tel:10177" class="btn btn-outline-danger btn-lg w-100 py-3">
+                    <div class="fs-4 fw-bold">10177</div>
+                    <div class="small">Ambulance</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-form-card-header">
+        <h2 class="h5 mb-1"><i class="bi bi-geo-alt-fill text-primary"></i> Also Notify My Nearest Station</h2>
+        <p class="text-muted small mb-0">
+            This is a supplementary step, not a substitute for the call above. It sends an immediate alert to
+            SAPS Officers and the Station Commander at the station nearest your current location.
+        </p>
+    </div>
+
+    @if (isComplainant)
+    {
+        <form asp-controller="Emergency" asp-action="Alert" method="post" id="emergencyAlertForm" data-confirm="Send this emergency alert?" data-confirm-text="Officers at your nearest station will be notified immediately." data-confirm-button="Yes, send it">
+            <div class="p-4">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="mb-3">
+                    <label asp-for="Message" class="form-label small fw-semibold text-muted"></label>
+                    <div class="saps-field-group">
+                        <i class="bi bi-card-text"></i>
+                        <textarea asp-for="Message" rows="3" placeholder="Optional — briefly describe what's happening, if you can"></textarea>
+                    </div>
+                </div>
+                <input asp-for="Latitude" type="hidden" id="latInput" />
+                <input asp-for="Longitude" type="hidden" id="lngInput" />
+                <div id="locationStatus" class="d-flex align-items-center gap-2">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="small text-muted">Detecting your location&hellip;</span>
+                </div>
+            </div>
+            <div class="saps-form-card-footer">
+                <button type="submit" class="btn btn-danger" id="sendAlertBtn" disabled><i class="bi bi-broadcast"></i> Send Emergency Alert</button>
+            </div>
+        </form>
+    }
+    else if (isAuthenticated)
+    {
+        <div class="p-4 mb-0 text-muted">
+            Sending an alert to a station is only available to Complainant accounts.
+        </div>
+    }
+    else
+    {
+        <div class="p-4 mb-0">
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Emergency">Log in</a> or
+            <a asp-controller="Account" asp-action="Register">create an account</a> to also notify your nearest
+            station.
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @if (isComplainant)
+    {
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        <script>
+            function onLocationSuccess(position) {
+                document.getElementById('latInput').value = position.coords.latitude;
+                document.getElementById('lngInput').value = position.coords.longitude;
+                document.getElementById('locationStatus').innerHTML =
+                    '<i class="bi bi-check-circle-fill text-success"></i> <span class="small text-muted">Location detected.</span>';
+                document.getElementById('sendAlertBtn').removeAttribute('disabled');
+            }
+
+            function onLocationError() {
+                document.getElementById('locationStatus').innerHTML =
+                    '<div class="alert alert-warning small mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Location access was denied or is unavailable. ' +
+                    'Please enable location access and <button type="button" class="btn btn-sm btn-link p-0 align-baseline" onclick="requestLocation()">try again</button>.</div>';
+            }
+
+            function requestLocation() {
+                if (!navigator.geolocation) {
+                    onLocationError();
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, { enableHighAccuracy: true, timeout: 10000 });
+            }
+
+            document.addEventListener('DOMContentLoaded', requestLocation);
+        </script>
+    }
+}

@@ -1,0 +1,82 @@
+@model Logic.Model.Auth.RegisterRequest
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card saps-card p-4">
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-person-plus" style="font-size: 2.5rem; color: var(--saps-accent);"></i>
+                    <h1 class="h3 mt-2">Create Your Account</h1>
+                    <p class="text-muted">
+                        Self-registration creates a Complainant account. SAPS Officer, Station Commander, and
+                        System Administrator accounts are created by an administrator.
+                    </p>
+                </div>
+                <form asp-controller="Account" asp-action="Register" method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-person"></i>
+                            <input asp-for="FullName" placeholder="Full name" />
+                        </div>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="IdNumber" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-person-vcard"></i>
+                            <input asp-for="IdNumber" placeholder="ID number" maxlength="13" inputmode="numeric" autocomplete="off" data-digits-only />
+                        </div>
+                        <span asp-validation-for="IdNumber" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-envelope"></i>
+                            <input asp-for="Email" autocomplete="username" placeholder="name@saps.gov.za" />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-telephone"></i>
+                            <input asp-for="PhoneNumber" placeholder="Phone number" maxlength="10" inputmode="numeric" autocomplete="off" data-digits-only />
+                        </div>
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-lock"></i>
+                            <input asp-for="Password" type="password" autocomplete="new-password" placeholder="Password" />
+                            <button type="button" class="saps-toggle-password" data-target="Password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-lock-fill"></i>
+                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm password" />
+                            <button type="button" class="saps-toggle-password" data-target="ConfirmPassword" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                </form>
+                <p class="mt-3 text-center">
+                    Already have an account? <a asp-controller="Account" asp-action="Login">Log in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,88 @@
+@model Logic.Model.PagedResult<Logic.DTO.AuditLogViewDTO>
+@{
+    ViewData["Title"] = "Audit Logs";
+    var search = ViewBag.Search as string;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Audit Logs</h1>
+    <div class="saps-breadcrumb">Home / Audit Logs</div>
+</div>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap">
+        <div class="saps-field-group flex-grow-1" style="max-width: 400px;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" value="@search" placeholder="Search by action, name, or email" />
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (!string.IsNullOrWhiteSpace(search))
+        {
+            <a asp-controller="AdminAuditLog" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-clock-history"></i>
+            No audit log entries found@(string.IsNullOrWhiteSpace(search) ? "." : " for that search.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>User</th>
+                        <th>Docket</th>
+                        <th>Affidavit</th>
+                        <th>Emergency Alert</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model.Items)
+                    {
+                        <tr>
+                            <td>@entry.Timestamp.ToLocalTime().ToString("dd MMM yyyy, HH:mm:ss")</td>
+                            <td><span class="badge text-bg-secondary">@entry.ActionType</span></td>
+                            <td>
+                                @entry.UserFullName
+                                @if (!string.IsNullOrEmpty(entry.UserEmail))
+                                {
+                                    <div class="text-muted small">@entry.UserEmail</div>
+                                }
+                            </td>
+                            <td>@(entry.DocketId != null ? $"#{entry.DocketId}" : "-")</td>
+                            <td>
+                                @if (entry.AffidavitId != null)
+                                {
+                                    <a asp-controller="Affidavits" asp-action="Details" asp-route-id="@entry.AffidavitId">@(entry.AffidavitReferenceNumber ?? $"#{entry.AffidavitId}")</a>
+                                }
+                                else
+                                {
+                                    @:-
+                                }
+                            </td>
+                            <td>@(entry.EmergencyAlertId != null ? $"#{entry.EmergencyAlertId}" : "-")</td>
+                            <td>@(entry.IpAddress ?? "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "AdminAuditLog", Action = "Index", Page = Model.Page, TotalPages = Model.TotalPages,
+        RouteValues = string.IsNullOrWhiteSpace(search) ? new() : new() { ["search"] = search }
+    })" />
+}

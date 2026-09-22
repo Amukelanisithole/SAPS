@@ -1,0 +1,80 @@
+@model Logic.Model.PagedResult<Database.Entities.Station>
+@{
+    ViewData["Title"] = "Manage Stations";
+    var search = ViewBag.Search as string;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Manage Stations</h1>
+    <div class="saps-breadcrumb">Home / Stations</div>
+</div>
+
+<p><a asp-controller="AdminStations" asp-action="Create" class="btn btn-primary"><i class="bi bi-building-add"></i> Create Station</a></p>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap">
+        <div class="saps-field-group flex-grow-1" style="max-width: 400px;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" value="@search" placeholder="Search by name, province, or address" />
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (!string.IsNullOrWhiteSpace(search))
+        {
+            <a asp-controller="AdminStations" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-building"></i>
+            @(string.IsNullOrWhiteSpace(search) ? "No stations have been created yet." : "No stations match that search.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Province</th>
+                        <th>Address</th>
+                        <th>Contact Number</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var station in Model.Items)
+                    {
+                        <tr>
+                            <td><i class="bi bi-building text-muted me-1"></i> @station.StationName</td>
+                            <td>@station.Province</td>
+                            <td>@station.Address</td>
+                            <td>@station.ContactNumber</td>
+                            <td>
+                                @if (station.Latitude != null && station.Longitude != null)
+                                {
+                                    <span class="badge text-bg-success"><i class="bi bi-geo-alt-fill"></i> Set</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary" title="Reports can't be routed to this station until it has a location"><i class="bi bi-geo"></i> Not set</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "AdminStations", Action = "Index", Page = Model.Page, TotalPages = Model.TotalPages,
+        RouteValues = string.IsNullOrWhiteSpace(search) ? new() : new() { ["search"] = search }
+    })" />
+}

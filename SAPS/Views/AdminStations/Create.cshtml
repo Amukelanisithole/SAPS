@@ -1,0 +1,161 @@
+@model Logic.DTO.StationDTO
+@{
+    ViewData["Title"] = "Create Station";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Create Station</h1>
+    <div class="saps-breadcrumb"><a asp-controller="AdminStations" asp-action="Index">Stations</a> / Create</div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card saps-card">
+            <div class="saps-form-card-header">
+                <h2 class="h5 mb-1"><i class="bi bi-building-add text-primary"></i> New Station</h2>
+                <p class="text-muted small mb-0">Click the map (or use "Locate on Map") to set where this station is, so reports can be routed to it.</p>
+            </div>
+
+            <form asp-controller="AdminStations" asp-action="Create" method="post" id="createStationForm">
+                <div class="p-4">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="StationName" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-building"></i>
+                            <input asp-for="StationName" placeholder="Station name" />
+                        </div>
+                        <span asp-validation-for="StationName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Province" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-map"></i>
+                            <input asp-for="Province" placeholder="Province" />
+                        </div>
+                        <span asp-validation-for="Province" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-geo-alt"></i>
+                            <input asp-for="Address" id="addressInput" placeholder="Street address" />
+                            <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" id="locateAddressBtn">Locate on Map</button>
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ContactNumber" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-telephone"></i>
+                            <input asp-for="ContactNumber" placeholder="Contact number" maxlength="10" inputmode="numeric" autocomplete="off" data-digits-only />
+                        </div>
+                        <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+                    </div>
+
+                    <input asp-for="Latitude" type="hidden" id="latInput" />
+                    <input asp-for="Longitude" type="hidden" id="lngInput" />
+                    <div id="coordsHint" class="form-text text-danger">You must click the map (or use "Locate on Map") to set this station's location before it can be created.</div>
+                </div>
+
+                <div class="saps-form-card-footer">
+                    <a asp-controller="AdminStations" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="createStationBtn" disabled><i class="bi bi-building-add"></i> Create Station</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div id="stationMap" style="height: 460px; border-radius: .75rem;" class="bg-light"></div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        let map, marker;
+        const defaultCenter = [-30.5595, 22.9375]; // South Africa, roughly centered
+
+        function placeMarker(lat, lng) {
+            document.getElementById('latInput').value = lat;
+            document.getElementById('lngInput').value = lng;
+
+            const hint = document.getElementById('coordsHint');
+            hint.textContent = `Location set: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            hint.classList.remove('text-danger');
+            hint.classList.add('text-success');
+
+            document.getElementById('createStationBtn').removeAttribute('disabled');
+
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                marker.on('dragend', function () {
+                    const pos = marker.getLatLng();
+                    placeMarker(pos.lat, pos.lng);
+                });
+            }
+            map.panTo([lat, lng]);
+        }
+
+        map = L.map('stationMap').setView(defaultCenter, 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        map.on('click', function (e) {
+            placeMarker(e.latlng.lat, e.latlng.lng);
+        });
+
+        // If the form is redisplayed after a validation error unrelated to location
+        // (e.g. duplicate name), the coordinates already posted back — restore the
+        // marker instead of making the admin re-pick the location from scratch.
+        (function restorePreviousSelection() {
+            const existingLat = document.getElementById('latInput').value;
+            const existingLng = document.getElementById('lngInput').value;
+            if (existingLat && existingLng) {
+                map.setZoom(15);
+                placeMarker(parseFloat(existingLat), parseFloat(existingLng));
+            }
+        })();
+
+        // Nominatim (OpenStreetMap's free geocoder) — no API key needed. Its usage
+        // policy asks for light, non-bulk use, which fits an admin picking a
+        // handful of station addresses by hand.
+        document.getElementById('locateAddressBtn').addEventListener('click', function () {
+            const address = document.getElementById('addressInput').value;
+            if (!address) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Searching…';
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`)
+                .then(res => res.json())
+                .then(results => {
+                    if (results && results.length > 0) {
+                        const lat = parseFloat(results[0].lat);
+                        const lon = parseFloat(results[0].lon);
+                        map.setZoom(15);
+                        placeMarker(lat, lon);
+                    } else {
+                        Swal.fire({ icon: 'warning', title: 'Address not found', text: 'Could not find that address on the map. Please click the map to set the location manually.' });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Address lookup failed', text: 'Please click the map to set the location manually.' });
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Locate on Map';
+                });
+        });
+    </script>
+}

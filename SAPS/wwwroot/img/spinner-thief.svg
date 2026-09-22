@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g style="filter: drop-shadow(0 0 1.6px rgba(255,255,255,.7))">
+    <line x1="56" y1="30" x2="42" y2="56" stroke="#2b2f36" stroke-width="16" stroke-linecap="round"/>
+    <line x1="56" y1="30" x2="36" y2="18" stroke="#2b2f36" stroke-width="8" stroke-linecap="round"/>
+    <line x1="56" y1="30" x2="76" y2="40" stroke="#2b2f36" stroke-width="8" stroke-linecap="round"/>
+    <line x1="42" y1="56" x2="62" y2="80" stroke="#2b2f36" stroke-width="11" stroke-linecap="round"/>
+    <line x1="42" y1="56" x2="22" y2="48" stroke="#2b2f36" stroke-width="11" stroke-linecap="round"/>
+    <ellipse cx="64" cy="82" rx="7" ry="4" fill="#000"/>
+    <ellipse cx="19" cy="46" rx="7" ry="4" fill="#000"/>
+    <circle cx="68" cy="18" r="11" fill="#2b2f36"/>
+    <path d="M 57 12 A 11 11 0 0 1 79 12 L 79 15 L 57 15 Z" fill="#1a1c20"/>
+  </g>
+  <line x1="44.9" y1="35.8" x2="57.3" y2="42.4" stroke="#e8e8e8" stroke-width="3" stroke-linecap="round"/>
+  <line x1="40.7" y1="43.6" x2="53.1" y2="50.2" stroke="#e8e8e8" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="64" cy="17" rx="2.2" ry="1.4" fill="#fff"/>
+  <ellipse cx="72" cy="17" rx="2.2" ry="1.4" fill="#fff"/>
+  <circle cx="79" cy="43" r="6" fill="#c98a3a" stroke="#e8e8e8" stroke-width="1"/>
+  <text x="79" y="46" font-size="6" text-anchor="middle" fill="#5a3a12" font-family="Arial" font-weight="bold">$</text>
+</svg>

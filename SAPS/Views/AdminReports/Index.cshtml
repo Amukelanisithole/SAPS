@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Reports & Exports";
+
+    var reportTypes = new (string Key, string Title, string Icon, string Description)[]
+    {
+        ("Users", "Users", "bi-people", "Every account: role, station, active status, and login history."),
+        ("Stations", "Stations", "bi-building", "Every registered SAPS station and its location."),
+        ("PreliminaryReports", "Preliminary Reports", "bi-file-earmark-text", "Every preliminary report submitted by complainants."),
+        ("Dockets", "Dockets", "bi-folder2-open", "Every official case docket opened from a report."),
+        ("Affidavits", "Affidavits", "bi-file-earmark-check", "Every affidavit submitted, its status, and who certified it."),
+        ("EmergencyAlerts", "Emergency Alerts", "bi-broadcast", "Every emergency alert raised, its station, and whether it was acknowledged."),
+        ("Escalations", "Escalations", "bi-exclamation-octagon", "Every escalation raised against a docket."),
+        ("Referrals", "Referrals", "bi-signpost-split", "Every referral of a docket between stations."),
+        ("AuditLogs", "Audit Logs", "bi-clock-history", "The full audit trail of sensitive actions across the system."),
+        ("Backups", "Backup Records", "bi-hdd-network", "Every recorded backup and whether its restoration was tested."),
+    };
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Reports & Exports</h1>
+    <div class="saps-breadcrumb">Home / Reports & Exports</div>
+</div>
+
+<p class="text-muted mb-4">Download a snapshot of everything happening across the system, as CSV (for spreadsheets) or PDF (for printing/filing).</p>
+
+<div class="row g-3">
+    @foreach (var report in reportTypes)
+    {
+        <div class="col-md-6 col-lg-4">
+            <div class="card saps-card h-100">
+                <div class="p-4 d-flex flex-column h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi @report.Icon text-primary fs-4"></i>
+                        <h2 class="h6 mb-0">@report.Title</h2>
+                    </div>
+                    <p class="text-muted small flex-grow-1">@report.Description</p>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="AdminReports" asp-action="Export" asp-route-type="@report.Key" asp-route-format="csv" class="btn btn-sm btn-outline-secondary flex-fill">
+                            <i class="bi bi-filetype-csv"></i> CSV
+                        </a>
+                        <a asp-controller="AdminReports" asp-action="Export" asp-route-type="@report.Key" asp-route-format="pdf" class="btn btn-sm btn-outline-secondary flex-fill">
+                            <i class="bi bi-filetype-pdf"></i> PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

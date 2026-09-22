@@ -1,0 +1,262 @@
+@{
+    ViewData["Title"] = "FAQ";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Frequently Asked Questions</h1>
+    <div class="saps-breadcrumb">Home / FAQ</div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="p-4 d-flex align-items-start gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-warning fs-3"></i>
+        <div>
+            <strong>Not an emergency service.</strong>
+            <div class="text-muted">If anyone is in immediate danger, contact your local emergency services
+                directly &mdash; a submission here is not monitored in real time.</div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5 mb-3"><i class="bi bi-info-circle text-primary"></i> General</h2>
+<div class="accordion mb-4" id="faqGeneral">
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqGeneral1">
+                What is the SAPS Crime Pre-Reporting System?
+            </button>
+        </h3>
+        <div id="faqGeneral1" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+            <div class="accordion-body">
+                It's an online system that lets you submit a preliminary record of a crime before it's opened
+                as an official docket at a police station, and lets you track that case afterwards. See our
+                <a asp-controller="Home" asp-action="About">About page</a> for a full overview.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqGeneral2">
+                Is this a replacement for calling emergency services?
+            </button>
+        </h3>
+        <div id="faqGeneral2" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+            <div class="accordion-body">
+                No. This system is not monitored in real time. If anyone is in immediate danger, contact your
+                local emergency services directly.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqGeneral3">
+                Is it free to use?
+            </button>
+        </h3>
+        <div id="faqGeneral3" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+            <div class="accordion-body">
+                Yes, creating an account and submitting reports or affidavits through this system is free.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqGeneral4">
+                Who can create an account?
+            </button>
+        </h3>
+        <div id="faqGeneral4" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+            <div class="accordion-body">
+                Anyone can self-register as a Complainant using the <a asp-controller="Account" asp-action="Register">Register</a>
+                page. SAPS Officer, Station Commander, and System Administrator accounts are provisioned
+                internally by an administrator and cannot be self-registered.
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5 mb-3"><i class="bi bi-file-earmark-plus text-primary"></i> Reporting a Crime</h2>
+<div class="accordion mb-4" id="faqReporting">
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqReporting1">
+                How do I submit a preliminary report?
+            </button>
+        </h3>
+        <div id="faqReporting1" class="accordion-collapse collapse" data-bs-parent="#faqReporting">
+            <div class="accordion-body">
+                Log in, go to <em>Submit Report</em>, and describe the incident type, date, location, and what
+                happened. You'll need to allow location access so the report can be routed to the SAPS station
+                nearest you. You'll receive a reference number immediately.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqReporting2">
+                What happens after I submit a report?
+            </button>
+        </h3>
+        <div id="faqReporting2" class="accordion-collapse collapse" data-bs-parent="#faqReporting">
+            <div class="accordion-body">
+                A SAPS Officer at the station your report was routed to reviews it. If accepted, it's opened as
+                an official case docket with a CAS number, and you'll be notified. It's not yet an official
+                case docket until an officer converts it.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqReporting3">
+                Why does the system need my location?
+            </button>
+        </h3>
+        <div id="faqReporting3" class="accordion-collapse collapse" data-bs-parent="#faqReporting">
+            <div class="accordion-body">
+                Your location is used only to find and route your report or affidavit to the real SAPS station
+                nearest you, using OpenStreetMap's public station data. See our
+                <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a> for details on how this data
+                is used and shared.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqReporting4">
+                Can I add more information after I've submitted a report?
+            </button>
+        </h3>
+        <div id="faqReporting4" class="accordion-collapse collapse" data-bs-parent="#faqReporting">
+            <div class="accordion-body">
+                Once your report becomes an official docket, you can send messages directly on the docket's
+                page &mdash; visible to you and the station staff handling your case.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqReporting5">
+                What if my case isn't being handled properly?
+            </button>
+        </h3>
+        <div id="faqReporting5" class="accordion-collapse collapse" data-bs-parent="#faqReporting">
+            <div class="accordion-body">
+                From your docket's details page, you can escalate the matter directly to a Station Commander,
+                who will review it and monitor escalations raised against their station.
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5 mb-3"><i class="bi bi-file-earmark-check text-primary"></i> Affidavits</h2>
+<div class="accordion mb-4" id="faqAffidavits">
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAffidavits1">
+                What is an affidavit, and why would I submit one here?
+            </button>
+        </h3>
+        <div id="faqAffidavits1" class="accordion-collapse collapse" data-bs-parent="#faqAffidavits">
+            <div class="accordion-body">
+                An affidavit is a sworn written statement, normally completed on paper in front of a
+                Commissioner of Oaths at a station. This system lets you complete the same statement online and
+                have it electronically certified by a SAPS officer at your nearest station.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAffidavits2">
+                Why do I need to take a photo and upload my ID document?
+            </button>
+        </h3>
+        <div id="faqAffidavits2" class="accordion-collapse collapse" data-bs-parent="#faqAffidavits">
+            <div class="accordion-body">
+                An affidavit is a legal document, so the officer certifying it needs to confirm you are who you
+                say you are. The live photo (checked for a visible face before it can be captured) and your ID
+                document together support that identity check, alongside your ID number.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAffidavits3">
+                What happens after I submit an affidavit?
+            </button>
+        </h3>
+        <div id="faqAffidavits3" class="accordion-collapse collapse" data-bs-parent="#faqAffidavits">
+            <div class="accordion-body">
+                It's routed to your nearest station, where an officer reviews it and either certifies it &mdash;
+                generating a stamped, downloadable PDF &mdash; or rejects it with a reason. You'll be notified
+                either way, and can check its status under <em>My Affidavits</em>.
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5 mb-3"><i class="bi bi-shield-lock text-primary"></i> Account &amp; Security</h2>
+<div class="accordion mb-4" id="faqAccount">
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAccount1">
+                Do I need to verify my email address?
+            </button>
+        </h3>
+        <div id="faqAccount1" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+            <div class="accordion-body">
+                We send a verification link to your email when you register. You can still use your account
+                before verifying, but you'll see a reminder until you do &mdash; verifying ensures you actually
+                receive important updates about your case. You can request a new link from that reminder at
+                any time.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAccount2">
+                I forgot my password. What do I do?
+            </button>
+        </h3>
+        <div id="faqAccount2" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+            <div class="accordion-body">
+                Select <em>Forgot your password?</em> on the login page and enter your email. If an account
+                exists for that address, you'll receive a link to reset your password.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAccount3">
+                Who can see my reports, dockets, and affidavits?
+            </button>
+        </h3>
+        <div id="faqAccount3" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+            <div class="accordion-body">
+                Only you and the SAPS staff at the station your case is routed to. Every access is logged. See
+                <a asp-controller="Home" asp-action="Privacy">who can see your information</a> for the full
+                breakdown by role.
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAccount4">
+                Is my information kept secure?
+            </button>
+        </h3>
+        <div id="faqAccount4" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+            <div class="accordion-body">
+                Passwords are hashed and never stored in plain text, all traffic is encrypted, and accounts are
+                temporarily locked after repeated failed login attempts. See our
+                <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a> for full details.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card saps-card">
+    <div class="p-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <span>Still have a question?</span>
+        <a href="mailto:support@saps.local" class="btn btn-outline-primary btn-sm"><i class="bi bi-envelope"></i> Contact Support</a>
+    </div>
+</div>

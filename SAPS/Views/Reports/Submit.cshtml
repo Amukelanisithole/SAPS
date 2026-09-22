@@ -1,0 +1,261 @@
+@model Logic.DTO.PreliminaryReportDTO
+@{
+    ViewData["Title"] = "Submit Preliminary Report";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Submit a Preliminary Report</h1>
+    <div class="saps-breadcrumb">Home / Submit Report</div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card saps-card">
+            <div class="saps-form-card-header">
+                <h2 class="h5 mb-1"><i class="bi bi-file-earmark-plus-fill text-primary"></i> Report Details</h2>
+                <p class="text-muted small mb-0">This creates an early, timestamped digital record of your complaint. It is not yet an official case docket — a SAPS Officer will review it.</p>
+            </div>
+
+            <form asp-controller="Reports" asp-action="Submit" method="post" id="submitReportForm">
+                <div class="p-4">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="IncidentType" class="form-label small fw-semibold text-muted"></label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-tag"></i>
+                                <input asp-for="IncidentType" placeholder="e.g. Theft, Assault, Fraud" />
+                            </div>
+                            <span asp-validation-for="IncidentType" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="IncidentDate" class="form-label small fw-semibold text-muted"></label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-calendar-event"></i>
+                                <input asp-for="IncidentDate" type="datetime-local" />
+                            </div>
+                            <span asp-validation-for="IncidentDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="IncidentLocation" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-geo-alt"></i>
+                            <input asp-for="IncidentLocation" placeholder="Where did this happen?" />
+                        </div>
+                        <span asp-validation-for="IncidentLocation" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="IncidentDescription" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-card-text"></i>
+                            <textarea asp-for="IncidentDescription" rows="5" placeholder="Describe what happened"></textarea>
+                        </div>
+                        <span asp-validation-for="IncidentDescription" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="SupportingInfo" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-paperclip"></i>
+                            <textarea asp-for="SupportingInfo" rows="3" placeholder="Optional — witnesses, reference numbers, etc."></textarea>
+                        </div>
+                        <span asp-validation-for="SupportingInfo" class="text-danger small"></span>
+                    </div>
+
+                    <input asp-for="Latitude" type="hidden" id="latInput" />
+                    <input asp-for="Longitude" type="hidden" id="lngInput" />
+                </div>
+
+                <div class="saps-form-card-footer">
+                    <button type="submit" class="btn btn-primary" id="submitReportBtn" disabled><i class="bi bi-send-fill"></i> Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card saps-card">
+            <div class="saps-panel-header"><span>Nearby Stations</span></div>
+            <div class="p-3">
+                <div id="locationStatus" class="d-flex align-items-center gap-2 mb-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="small text-muted">Detecting your location&hellip;</span>
+                </div>
+                <div id="reportMap" style="height: 280px; border-radius: .75rem;" class="bg-light mb-3"></div>
+                <ul class="list-group list-group-flush" id="nearbyStationsList" style="display:none;"></ul>
+                <p class="text-muted small mt-3 mb-0">
+                    Your report is automatically routed to the real SAPS station nearest your current location
+                    (from OpenStreetMap). Location access is required to submit.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Widening search radii, matching the server's own lookup — real SAPS
+        // stations come from OpenStreetMap (Overpass API), not a pre-seeded list,
+        // so this is a live query, same as what actually decides routing.
+        const LOOKUP_RADII_KM = [10, 25, 50];
+        let map, userMarker, radiusCircle;
+        const stationMarkers = [];
+
+        function haversineKm(lat1, lon1, lat2, lon2) {
+            const toRad = d => d * Math.PI / 180;
+            const R = 6371;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        async function fetchPoliceStations(lat, lng, radiusKm) {
+            const radiusMeters = Math.round(radiusKm * 1000);
+            const query = `[out:json][timeout:25];node["amenity"="police"](around:${radiusMeters},${lat},${lng});out body;`;
+            try {
+                const res = await fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    body: 'data=' + encodeURIComponent(query)
+                });
+                if (!res.ok) return [];
+                const json = await res.json();
+                if (!json.elements) return [];
+                return json.elements
+                    .filter(e => e.tags && e.tags.name)
+                    .map(e => ({ StationName: e.tags.name, Latitude: e.lat, Longitude: e.lon }));
+            } catch (e) {
+                return [];
+            }
+        }
+
+        // Tries 10km first, widening only if nothing is tagged nearby yet.
+        async function findNearbyStations(lat, lng) {
+            for (const radiusKm of LOOKUP_RADII_KM) {
+                const found = await fetchPoliceStations(lat, lng, radiusKm);
+                if (found.length > 0) {
+                    return { stations: found, radiusKm };
+                }
+            }
+            return { stations: [], radiusKm: LOOKUP_RADII_KM[LOOKUP_RADII_KM.length - 1] };
+        }
+
+        function rankByDistance(lat, lng, foundStations) {
+            return foundStations
+                .map(s => ({ station: s, distanceKm: haversineKm(lat, lng, s.Latitude, s.Longitude) }))
+                .sort((a, b) => a.distanceKm - b.distanceKm);
+        }
+
+        function renderStationsList(ranked, radiusKm) {
+            const listEl = document.getElementById('nearbyStationsList');
+            listEl.innerHTML = '';
+
+            if (ranked.length === 0) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item px-0 text-muted small';
+                li.textContent = 'No SAPS stations could be found near your location.';
+                listEl.appendChild(li);
+                listEl.style.display = 'block';
+                return;
+            }
+
+            ranked.forEach((r, i) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center px-0';
+                li.innerHTML = `<span>${r.station.StationName}${i === 0 ? ' <span class="badge text-bg-primary ms-1">Nearest</span>' : ''}</span>` +
+                    `<span class="text-muted small">${r.distanceKm.toFixed(1)} km</span>`;
+                listEl.appendChild(li);
+            });
+
+            listEl.style.display = 'block';
+        }
+
+        async function onLocationSuccess(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById('latInput').value = lat;
+            document.getElementById('lngInput').value = lng;
+            document.getElementById('submitReportBtn').removeAttribute('disabled');
+
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>' +
+                '<span class="small text-muted ms-2">Finding nearby SAPS stations&hellip;</span>';
+
+            const { stations: found, radiusKm } = await findNearbyStations(lat, lng);
+            const ranked = rankByDistance(lat, lng, found);
+
+            statusEl.style.display = 'none';
+            renderStationsList(ranked, radiusKm);
+            renderMap(lat, lng, ranked, radiusKm);
+        }
+
+        function onLocationError() {
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.innerHTML = '<div class="alert alert-warning small mb-0">' +
+                '<i class="bi bi-exclamation-triangle-fill"></i> Location access was denied or is unavailable. ' +
+                'Please enable location access in your browser and ' +
+                '<button type="button" class="btn btn-sm btn-link p-0 align-baseline" onclick="requestLocation()">try again</button>.' +
+                '</div>';
+        }
+
+        function requestLocation() {
+            if (!navigator.geolocation) {
+                onLocationError();
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, { enableHighAccuracy: true, timeout: 10000 });
+        }
+
+        // A gold teardrop pin (matching the site's accent color) so the nearest
+        // station stands out on the map instead of looking identical to the rest.
+        const nearestIcon = L.divIcon({
+            html: '<i class="bi bi-geo-alt-fill" style="font-size:2rem; color:#d9a441; text-shadow: 0 1px 3px rgba(0,0,0,.5);"></i>',
+            className: '',
+            iconSize: [32, 32],
+            iconAnchor: [16, 30],
+            popupAnchor: [0, -28]
+        });
+
+        function renderMap(lat, lng, ranked, radiusKm) {
+            const mapEl = document.getElementById('reportMap');
+
+            map = L.map(mapEl).setView([lat, lng], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            userMarker = L.marker([lat, lng]).addTo(map).bindPopup('Your location').openPopup();
+
+            radiusCircle = L.circle([lat, lng], {
+                radius: radiusKm * 1000,
+                color: '#1b4b91',
+                fillColor: '#1b4b91',
+                fillOpacity: 0.06,
+                weight: 1
+            }).addTo(map);
+
+            const bounds = L.latLngBounds([[lat, lng]]);
+
+            // Every entry in "ranked" already fell within radiusKm — that's what
+            // bounded the Overpass query that produced it.
+            ranked.forEach((r, i) => {
+                const isNearest = i === 0;
+                const marker = L.marker([r.station.Latitude, r.station.Longitude], isNearest ? { icon: nearestIcon, zIndexOffset: 1000 } : {})
+                    .addTo(map)
+                    .bindPopup(`<strong>${r.station.StationName}</strong><br />${r.distanceKm.toFixed(1)} km away${isNearest ? '<br /><em>Your report will be sent here</em>' : ''}`);
+                stationMarkers.push(marker);
+                bounds.extend([r.station.Latitude, r.station.Longitude]);
+            });
+
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+        }
+
+        document.addEventListener('DOMContentLoaded', requestLocation);
+    </script>
+}

@@ -1,0 +1,201 @@
+@model OfficerDashboardViewModel
+@{
+    ViewData["Title"] = "Officer Dashboard";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Officer Dashboard</h1>
+    <div class="saps-breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a> / Dashboard</div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="saps-small-box red">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.ActiveEmergencyAlertCount</div>
+                <div class="saps-small-box-label">Active Emergency Alerts</div>
+            </div>
+            <i class="bi bi-broadcast saps-small-box-icon"></i>
+            <a asp-controller="Emergency" asp-action="ForStation" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box gold">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.ReportsAwaitingReviewCount</div>
+                <div class="saps-small-box-label">Preliminary Reports Awaiting Review</div>
+            </div>
+            <i class="bi bi-inbox saps-small-box-icon"></i>
+            <a asp-controller="Reports" asp-action="ForReview" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box blue">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.DocketsAtMyStationCount</div>
+                <div class="saps-small-box-label">Dockets At My Station</div>
+            </div>
+            <i class="bi bi-geo-alt saps-small-box-icon"></i>
+            <a asp-controller="Dockets" asp-action="Station" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box slate">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.AffidavitsAwaitingReviewCount</div>
+                <div class="saps-small-box-label">Affidavits Awaiting Review</div>
+            </div>
+            <i class="bi bi-file-earmark-check saps-small-box-icon"></i>
+            <a asp-controller="Affidavits" asp-action="ForReview" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+</div>
+
+@if (Model.ActiveEmergencyAlertCount > 0)
+{
+    <div class="card mb-4" style="border: 2px solid #dc3545;">
+        <div class="saps-panel-header">
+            <span><i class="bi bi-broadcast text-danger"></i> Active Emergency Alerts</span>
+            <a asp-controller="Emergency" asp-action="ForStation" class="small">View all</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Complainant</th>
+                        <th>Message</th>
+                        <th>Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var alert in Model.ActiveEmergencyAlerts)
+                    {
+                        <tr class="cursor-pointer" onclick="location.href='@Url.Action("ForStation", "Emergency")'">
+                            <td>@(alert.NavComplainant?.FullName ?? "-")</td>
+                            <td class="text-truncate" style="max-width:260px;">@(alert.Message ?? "-")</td>
+                            <td>@alert.SubmissionTimestamp.ToLocalTime()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card saps-card gold">
+            <div class="saps-panel-header">
+                <span>Reports Awaiting Review</span>
+                <a asp-controller="Reports" asp-action="ForReview" class="small">View all</a>
+            </div>
+            @if (!Model.ReportsAwaitingReview.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-check2-circle"></i>
+                    No preliminary reports are currently awaiting review.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var report in Model.ReportsAwaitingReview)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Details", "Reports", new { id = report.Id })'">
+                                    <td>@report.ReferenceNumber</td>
+                                    <td>@report.IncidentType</td>
+                                    <td><span class="badge @EReportStatus.GetBadgeClass(report.StatusId)">@EReportStatus.GetName(report.StatusId)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span>Dockets At My Station</span>
+                <a asp-controller="Dockets" asp-action="Station" class="small">View all</a>
+            </div>
+            @if (!Model.DocketsAtMyStation.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-folder2-open"></i>
+                    No dockets are currently held at your station.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Docket #</th>
+                                <th>CAS Number</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var docket in Model.DocketsAtMyStation)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Details", "Dockets", new { id = docket.Id })'">
+                                    <td>@docket.Id</td>
+                                    <td>@(docket.CasNumber ?? "-")</td>
+                                    <td><span class="badge @EDocketStatus.GetBadgeClass(docket.StatusId)">@EDocketStatus.GetName(docket.StatusId)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span>Affidavits Awaiting Review</span>
+                <a asp-controller="Affidavits" asp-action="ForReview" class="small">View all</a>
+            </div>
+            @if (!Model.AffidavitsAwaitingReview.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-check2-circle"></i>
+                    No affidavits are currently awaiting review.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var affidavit in Model.AffidavitsAwaitingReview)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Details", "Affidavits", new { id = affidavit.Id })'">
+                                    <td>@affidavit.ReferenceNumber</td>
+                                    <td><span class="badge @EAffidavitStatus.GetBadgeClass(affidavit.StatusId)">@EAffidavitStatus.GetName(affidavit.StatusId)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

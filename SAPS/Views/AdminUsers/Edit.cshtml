@@ -1,0 +1,80 @@
+@model Logic.DTO.UpdateUserDTO
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Edit User</h1>
+    <div class="saps-breadcrumb"><a asp-controller="AdminUsers" asp-action="Index">Users</a> / Edit</div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card saps-card">
+            <div class="saps-form-card-header">
+                <h2 class="h5 mb-1"><i class="bi bi-person-gear text-primary"></i> Edit Account</h2>
+                <p class="text-muted small mb-0">Update this user's details, role, or station assignment.</p>
+            </div>
+
+            <form asp-controller="AdminUsers" asp-action="Edit" asp-route-id="@ViewBag.UserId" method="post">
+                <div class="p-4">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label small fw-semibold text-muted"></label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-person"></i>
+                                <input asp-for="FullName" placeholder="Full name" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label small fw-semibold text-muted"></label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-envelope"></i>
+                                <input asp-for="Email" placeholder="name@saps.gov.za" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label small fw-semibold text-muted"></label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-telephone"></i>
+                                <input asp-for="PhoneNumber" placeholder="Phone number" maxlength="10" inputmode="numeric" autocomplete="off" data-digits-only />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="RoleId" class="form-label small fw-semibold text-muted">Role</label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-shield-check"></i>
+                                <select asp-for="RoleId" asp-items="(IEnumerable<SelectListItem>)ViewBag.Roles"></select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="StationId" class="form-label small fw-semibold text-muted">Station <span class="text-muted fw-normal">(required for Officer / Commander)</span></label>
+                            <div class="saps-field-group">
+                                <i class="bi bi-building"></i>
+                                <select asp-for="StationId" asp-items="(IEnumerable<SelectListItem>)ViewBag.Stations">
+                                    <option value="">-- None --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="saps-form-card-footer">
+                    <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,172 @@
+@model ComplainantDashboardViewModel
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Welcome back, @User.GetFullName().Split(' ')[0]</h1>
+    <div class="saps-breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a> / Dashboard</div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="saps-small-box navy">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.ReportCount</div>
+                <div class="saps-small-box-label">Preliminary Reports Submitted</div>
+            </div>
+            <i class="bi bi-journal-text saps-small-box-icon"></i>
+            <a asp-controller="Reports" asp-action="Mine" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box blue">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.DocketCount</div>
+                <div class="saps-small-box-label">Open Dockets</div>
+            </div>
+            <i class="bi bi-folder2-open saps-small-box-icon"></i>
+            <a asp-controller="Dockets" asp-action="Mine" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box slate">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.AffidavitCount</div>
+                <div class="saps-small-box-label">Affidavits Submitted</div>
+            </div>
+            <i class="bi bi-file-earmark-check saps-small-box-icon"></i>
+            <a asp-controller="Affidavits" asp-action="Mine" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box gold">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.UnreadNotificationCount</div>
+                <div class="saps-small-box-label">Unread Notifications</div>
+            </div>
+            <i class="bi bi-bell saps-small-box-icon"></i>
+            <a asp-controller="NotificationsPage" asp-action="Index" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span>Recent Reports</span>
+                <a asp-controller="Reports" asp-action="Mine" class="small">View all</a>
+            </div>
+            @if (!Model.RecentReports.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-journal-text"></i>
+                    You haven't submitted any preliminary reports yet.
+                    <div class="mt-2"><a asp-controller="Reports" asp-action="Submit" class="btn btn-sm btn-primary">Submit a Report</a></div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var report in Model.RecentReports)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Details", "Reports", new { id = report.Id })'">
+                                    <td>@report.ReferenceNumber</td>
+                                    <td>@report.IncidentType</td>
+                                    <td><span class="badge @EReportStatus.GetBadgeClass(report.StatusId)">@EReportStatus.GetName(report.StatusId)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span>Recent Dockets</span>
+                <a asp-controller="Dockets" asp-action="Mine" class="small">View all</a>
+            </div>
+            @if (!Model.RecentDockets.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-folder2-open"></i>
+                    None of your reports have been opened as official dockets yet.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Docket #</th>
+                                <th>CAS Number</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var docket in Model.RecentDockets)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Details", "Dockets", new { id = docket.Id })'">
+                                    <td>@docket.Id</td>
+                                    <td>@(docket.CasNumber ?? "-")</td>
+                                    <td><span class="badge @EDocketStatus.GetBadgeClass(docket.StatusId)">@EDocketStatus.GetName(docket.StatusId)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span>Recent Affidavits</span>
+                <a asp-controller="Affidavits" asp-action="Mine" class="small">View all</a>
+            </div>
+            @if (!Model.RecentAffidavits.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-file-earmark-check"></i>
+                    You haven't submitted any affidavits yet.
+                    <div class="mt-2"><a asp-controller="Affidavits" asp-action="Submit" class="btn btn-sm btn-primary">Submit an Affidavit</a></div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var affidavit in Model.RecentAffidavits)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Details", "Affidavits", new { id = affidavit.Id })'">
+                                    <td>@affidavit.ReferenceNumber</td>
+                                    <td><span class="badge @EAffidavitStatus.GetBadgeClass(affidavit.StatusId)">@EAffidavitStatus.GetName(affidavit.StatusId)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

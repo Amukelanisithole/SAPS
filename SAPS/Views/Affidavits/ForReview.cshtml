@@ -1,0 +1,59 @@
+@model Logic.Model.PagedResult<Database.Entities.Affidavit>
+@{
+    ViewData["Title"] = "Affidavits For Review";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Affidavits For Review</h1>
+    <div class="saps-breadcrumb">Home / Affidavits For Review</div>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-file-earmark-check"></i>
+            No affidavits are waiting for review at your station.
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Reference Number</th>
+                        <th>Deponent</th>
+                        <th>ID Number</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var affidavit in Model.Items)
+                    {
+                        <tr>
+                            <td>@affidavit.ReferenceNumber</td>
+                            <td>@affidavit.FullName</td>
+                            <td>@affidavit.IdNumber</td>
+                            <td>@affidavit.SubmissionTimestamp.ToLocalTime()</td>
+                            <td><span class="badge @EAffidavitStatus.GetBadgeClass(affidavit.StatusId)">@EAffidavitStatus.GetName(affidavit.StatusId)</span></td>
+                            <td>
+                                <a asp-controller="Affidavits" asp-action="Details" asp-route-id="@affidavit.Id" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "Affidavits", Action = "ForReview", Page = Model.Page, TotalPages = Model.TotalPages
+    })" />
+}

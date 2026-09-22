@@ -1,0 +1,250 @@
+@{
+    ViewData["Title"] = "Home";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isComplainant = isAuthenticated && User.GetRoleName() == "Complainant";
+    var isStaff = isAuthenticated && User.GetRoleName() is "SapsOfficer" or "StationCommander" or "SystemAdministrator";
+}
+
+<section class="saps-hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge rounded-pill badge-gold px-3 py-2 mb-3 saps-animate-in" style="--delay:0s"><i class="bi bi-shield-check"></i> Secure &amp; Confidential Reporting</span>
+                <h1 class="mb-3 saps-animate-in" style="--delay:.1s">Report a crime in minutes. Know where it stands.</h1>
+                <p class="lead mb-4 saps-animate-in" style="--delay:.2s">
+                    Submit a preliminary report from home, get a timestamped reference number as proof, and track
+                    your case securely &mdash; without first standing in line at a station.
+                </p>
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3 saps-animate-in" style="--delay:.3s">
+                    @if (isComplainant)
+                    {
+                        <a asp-controller="Reports" asp-action="Submit" class="btn btn-warning btn-lg"><i class="bi bi-file-earmark-plus"></i> Report a Crime</a>
+                        <a asp-controller="Dockets" asp-action="Mine" class="btn btn-link text-white">Track My Case &rarr;</a>
+                    }
+                    else if (isStaff)
+                    {
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-warning btn-lg"><i class="bi bi-speedometer2"></i> Go to Dashboard</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-warning btn-lg"><i class="bi bi-file-earmark-plus"></i> Report a Crime</a>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-link text-white">Log In / Track a Case &rarr;</a>
+                    }
+                </div>
+                <div class="d-flex align-items-center saps-trust-row mb-2 saps-animate-in" style="--delay:.4s">
+                    <span>Instant reference number</span>
+                    <span class="sep mx-2">&bull;</span>
+                    <span>Full audit trail</span>
+                    <span class="sep mx-2">&bull;</span>
+                    <span>Available 24/7</span>
+                </div>
+                <p class="saps-safety-note mb-0 saps-animate-in" style="--delay:.5s">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Not an emergency service &mdash; contact local emergency services if anyone is in immediate danger.
+                </p>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-center">
+                <div class="saps-mock-browser">
+                    <div class="saps-mock-browser-bar">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        <div class="saps-mock-url"><i class="bi bi-lock-fill" style="font-size:.65rem;"></i> saps-reporting.local</div>
+                    </div>
+                    <div class="saps-mock-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <div class="saps-mock-ref-label">Reference Number</div>
+                                <div class="fw-bold fs-5">PR-20260919-482913</div>
+                            </div>
+                            <span class="badge saps-badge-status rounded-pill">Submitted</span>
+                        </div>
+                        <div class="mb-2 text-muted small"><i class="bi bi-tag"></i> Theft</div>
+                        <div class="mb-2 text-muted small"><i class="bi bi-geo-alt"></i> Sandton, Gauteng</div>
+                        <div class="mb-2 text-muted small"><i class="bi bi-calendar-event"></i> Submitted moments ago</div>
+                        <hr />
+                        <div class="saps-mini-stepper">
+                            <div class="saps-mini-step active">
+                                <span class="dot"></span>Submitted
+                            </div>
+                            <div class="saps-mini-step-line"></div>
+                            <div class="saps-mini-step">
+                                <span class="dot"></span>Under Review
+                            </div>
+                            <div class="saps-mini-step-line"></div>
+                            <div class="saps-mini-step">
+                                <span class="dot"></span>Docket Opened
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="saps-stat-strip py-4 mb-5 reveal">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Role-Based Portals</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-value">10</div>
+                <div class="stat-label">Functional Requirements Met</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Actions Audit-Logged</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Submission Access</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5 reveal">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+            <div class="saps-eyebrow mb-2">Why This Matters</div>
+            <h2 class="mb-3">Victims deserve proof their report was heard.</h2>
+            <p class="text-muted">
+                Victims too often face improper refusal to open cases, are sent between stations, or are left with
+                no proof they ever reported anything at all. This system creates an early, timestamped digital
+                record the moment you submit &mdash; so there's always a trail.
+            </p>
+        </div>
+        <div class="col-lg-6">
+            <div class="saps-check-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <div>
+                    <strong>Reduce station congestion.</strong>
+                    <div class="text-muted small">Start the process online before ever attending a station in person.</div>
+                </div>
+            </div>
+            <div class="saps-check-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <div>
+                    <strong>Traceable from the first click.</strong>
+                    <div class="text-muted small">Every access, referral, and status change is logged against the person who made it.</div>
+                </div>
+            </div>
+            <div class="saps-check-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <div>
+                    <strong>A direct escalation channel.</strong>
+                    <div class="text-muted small">Raise unresolved or poorly handled matters straight to a Station Commander.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5 reveal">
+    <div class="saps-eyebrow text-center mb-2">What You Get</div>
+    <h2 class="text-center mb-4">Built around the way a case actually moves</h2>
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card saps-card h-100 p-3">
+                <div class="card-body">
+                    <div class="saps-feature-icon mb-3"><i class="bi bi-geo-alt"></i></div>
+                    <h5 class="card-title">Report From Anywhere</h5>
+                    <p class="card-text text-muted">Submit a preliminary report online from home, before ever attending a station.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card saps-card h-100 p-3">
+                <div class="card-body">
+                    <div class="saps-feature-icon mb-3"><i class="bi bi-patch-check"></i></div>
+                    <h5 class="card-title">Proof of Submission</h5>
+                    <p class="card-text text-muted">Receive an instant, timestamped reference number the moment you submit.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card saps-card h-100 p-3">
+                <div class="card-body">
+                    <div class="saps-feature-icon mb-3"><i class="bi bi-search"></i></div>
+                    <h5 class="card-title">Track Your Case</h5>
+                    <p class="card-text text-muted">Securely log in anytime to see whether your case is under investigation, referred, or archived.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card saps-card h-100 p-3">
+                <div class="card-body">
+                    <div class="saps-feature-icon mb-3"><i class="bi bi-journal-check"></i></div>
+                    <h5 class="card-title">Full Accountability</h5>
+                    <p class="card-text text-muted">Every access, referral and status change is captured in an immutable audit trail.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5 reveal">
+    <div class="saps-eyebrow text-center mb-2">The Process</div>
+    <h2 class="text-center mb-5">How It Works</h2>
+    <div class="row g-4 text-center saps-timeline">
+        <div class="col-md-4">
+            <div class="saps-step-number mx-auto mb-3"><i class="bi bi-pencil-square"></i></div>
+            <h5>Submit Your Report</h5>
+            <p class="text-muted">Describe the incident, date, and location. You'll get a reference number immediately.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="saps-step-number mx-auto mb-3"><i class="bi bi-person-check"></i></div>
+            <h5>An Officer Reviews It</h5>
+            <p class="text-muted">A SAPS Officer reviews your report and, once accepted, opens an official case docket.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="saps-step-number mx-auto mb-3"><i class="bi bi-graph-up-arrow"></i></div>
+            <h5>Track or Escalate</h5>
+            <p class="text-muted">Check your case status anytime, or escalate directly to a Station Commander if it's unresolved.</p>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5 reveal">
+    <div class="saps-eyebrow text-center mb-2">National Leadership</div>
+    <h2 class="text-center mb-5">Operating Under the Authority of the South African Government</h2>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4 text-center">
+            <div class="saps-leader-avatar">
+                <img src="~/branding/president.jpg" alt="President of the Republic of South Africa" onerror="this.style.display='none'" />
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="saps-leader-name">Cyril Ramaphosa</div>
+            <div class="saps-leader-title">President of the Republic of South Africa</div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="saps-leader-avatar">
+                <img src="~/branding/minister-of-police.webp" alt="Minister of Police" onerror="this.style.display='none'" />
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="saps-leader-name">Senzo Mchunu</div>
+            <div class="saps-leader-title">Minister of Police</div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="saps-leader-avatar">
+                <img src="~/branding/kzn-commissioner.avif" alt="Provincial Commissioner: KwaZulu-Natal" onerror="this.style.display='none'" />
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="saps-leader-name">Nhlanhla Mkhwanazi</div>
+            <div class="saps-leader-title">Provincial Commissioner: KwaZulu-Natal</div>
+        </div>
+    </div>
+</section>
+
+@if (!isAuthenticated)
+{
+    <section class="saps-cta-band text-center mb-5 reveal">
+        <h3 class="mb-2">Ready to get started?</h3>
+        <p class="mb-4" style="color: rgba(255,255,255,.8);">Create a free account to submit your first preliminary report in minutes.</p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-warning btn-lg">Create Account</a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-lg">Log In</a>
+        </div>
+    </section>
+}

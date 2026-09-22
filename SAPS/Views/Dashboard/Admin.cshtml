@@ -1,0 +1,162 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Administrator Dashboard";
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Administrator Dashboard</h1>
+    <div class="saps-breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a> / Dashboard</div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="saps-small-box navy">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.UserCount</div>
+                <div class="saps-small-box-label">Total Users</div>
+            </div>
+            <i class="bi bi-people saps-small-box-icon"></i>
+            <a asp-controller="AdminUsers" asp-action="Index" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box blue">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.StationCount</div>
+                <div class="saps-small-box-label">Total Stations</div>
+            </div>
+            <i class="bi bi-building saps-small-box-icon"></i>
+            <a asp-controller="AdminStations" asp-action="Index" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box slate">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.AffidavitCount</div>
+                <div class="saps-small-box-label">Total Affidavits</div>
+            </div>
+            <i class="bi bi-file-earmark-check saps-small-box-icon"></i>
+            <a asp-controller="AdminAffidavits" asp-action="Index" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box gold">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.BackupCount</div>
+                <div class="saps-small-box-label">Backup Records</div>
+            </div>
+            <i class="bi bi-hdd-network saps-small-box-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="saps-small-box red">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@Model.EmergencyAlertCount</div>
+                <div class="saps-small-box-label">Emergency Alerts</div>
+            </div>
+            <i class="bi bi-broadcast saps-small-box-icon"></i>
+            <a asp-controller="AdminEmergencyAlerts" asp-action="Index" class="saps-small-box-footer">View all <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card saps-card">
+            <div class="saps-panel-header">
+                <span>Recently Created Users</span>
+                <a asp-controller="AdminUsers" asp-action="Index" class="small">View all</a>
+            </div>
+            @if (!Model.RecentUsers.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-people"></i>
+                    No users found.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Role</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.RecentUsers)
+                            {
+                                <tr class="cursor-pointer" onclick="location.href='@Url.Action("Edit", "AdminUsers", new { id = user.Id })'">
+                                    <td>@user.FullName</td>
+                                    <td>@ERole.GetName(user.RoleId)</td>
+                                    <td>
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge text-bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card saps-card gold">
+            <div class="saps-panel-header">
+                <span>Recent Backups</span>
+                <form asp-controller="AdminBackup" asp-action="Perform" method="post">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-hdd-network"></i> Trigger Backup</button>
+                </form>
+            </div>
+            @if (!Model.RecentBackups.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-hdd-network"></i>
+                    No backups have been recorded yet.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Backup Date</th>
+                                <th>Status</th>
+                                <th>Restoration Tested</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var backup in Model.RecentBackups)
+                            {
+                                <tr>
+                                    <td>@backup.BackupDate.ToLocalTime()</td>
+                                    <td><span class="badge @EBackupStatus.GetBadgeClass(backup.StatusId)">@EBackupStatus.GetName(backup.StatusId)</span></td>
+                                    <td>@(backup.RestorationTested ? "Yes" : "No")</td>
+                                    <td>
+                                        @if (!backup.RestorationTested)
+                                        {
+                                            <form asp-controller="AdminBackup" asp-action="MarkRestorationTested" asp-route-id="@backup.Id" method="post">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Mark Tested</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

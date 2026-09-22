@@ -1,0 +1,102 @@
+@model Logic.Model.PagedResult<Database.Entities.Affidavit>
+@{
+    ViewData["Title"] = "Affidavits";
+    long? statusId = ViewBag.StatusId;
+    long? stationId = ViewBag.StationId;
+    IEnumerable<Database.Entities.Station> stations = ViewBag.Stations;
+    var statusOptions = new (long Id, string Name)[] {
+        (EAffidavitStatus.Submitted, "Submitted"),
+        (EAffidavitStatus.Stamped, "Stamped"),
+        (EAffidavitStatus.Rejected, "Rejected"),
+    };
+    var hasFilter = statusId != null || stationId != null;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Affidavits</h1>
+    <div class="saps-breadcrumb">Home / Affidavits</div>
+</div>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap align-items-center">
+        <div class="saps-field-group" style="max-width: 220px;">
+            <i class="bi bi-funnel"></i>
+            <select name="statusId">
+                <option value="">All Statuses</option>
+                @foreach (var opt in statusOptions)
+                {
+                    <option value="@opt.Id" selected="@(statusId == opt.Id ? "selected" : null)">@opt.Name</option>
+                }
+            </select>
+        </div>
+        <div class="saps-field-group" style="max-width: 260px;">
+            <i class="bi bi-building"></i>
+            <select name="stationId">
+                <option value="">All Stations</option>
+                @foreach (var station in stations)
+                {
+                    <option value="@station.Id" selected="@(stationId == station.Id ? "selected" : null)">@station.StationName</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (hasFilter)
+        {
+            <a asp-controller="AdminAffidavits" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-file-earmark-check"></i>
+            @(hasFilter ? "No affidavits match those filters." : "No affidavits have been submitted yet.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Reference Number</th>
+                        <th>Complainant</th>
+                        <th>Station</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var affidavit in Model.Items)
+                    {
+                        <tr>
+                            <td>@affidavit.ReferenceNumber</td>
+                            <td>@(affidavit.NavComplainant?.FullName ?? affidavit.FullName)</td>
+                            <td>@(affidavit.NavNearestStation?.StationName ?? "-")</td>
+                            <td><span class="badge @EAffidavitStatus.GetBadgeClass(affidavit.StatusId)">@EAffidavitStatus.GetName(affidavit.StatusId)</span></td>
+                            <td>@affidavit.SubmissionTimestamp.ToLocalTime()</td>
+                            <td>
+                                <a asp-controller="Affidavits" asp-action="Details" asp-route-id="@affidavit.Id" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    var routeValues = new Dictionary<string, string>();
+    if (statusId != null) { routeValues["statusId"] = statusId.ToString()!; }
+    if (stationId != null) { routeValues["stationId"] = stationId.ToString()!; }
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "AdminAffidavits", Action = "Index", Page = Model.Page, TotalPages = Model.TotalPages, RouteValues = routeValues
+    })" />
+}

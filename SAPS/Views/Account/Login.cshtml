@@ -1,0 +1,48 @@
+@model Logic.Model.Auth.LoginRequest
+@{
+    ViewData["Title"] = "Log In";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card saps-card p-4">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-shield-lock" style="font-size: 2.5rem; color: var(--saps-accent);"></i>
+                    <h1 class="h3 mt-2">Log In</h1>
+                </div>
+                <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-envelope"></i>
+                            <input asp-for="Email" autocomplete="username" placeholder="name@saps.gov.za" />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label small fw-semibold text-muted"></label>
+                        <div class="saps-field-group">
+                            <i class="bi bi-lock"></i>
+                            <input asp-for="Password" type="password" autocomplete="current-password" placeholder="Password" />
+                            <button type="button" class="saps-toggle-password" data-target="Password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <div class="text-end mt-1">
+                            <a asp-controller="Account" asp-action="ForgotPassword" class="small">Forgot your password?</a>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Log In</button>
+                </form>
+                <p class="mt-3 text-center">
+                    Don't have an account? <a asp-controller="Account" asp-action="Register">Register</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

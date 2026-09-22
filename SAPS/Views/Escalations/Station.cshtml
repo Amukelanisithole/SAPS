@@ -1,0 +1,89 @@
+@model Logic.Model.PagedResult<Database.Entities.Escalation>
+@{
+    ViewData["Title"] = "Escalations At My Station";
+    long? statusId = ViewBag.StatusId;
+    var statusOptions = new (long Id, string Name)[] {
+        (EEscalationStatus.Open, "Open"),
+        (EEscalationStatus.InProgress, "In Progress"),
+        (EEscalationStatus.Resolved, "Resolved"),
+    };
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Escalations At My Station</h1>
+    <div class="saps-breadcrumb">Home / Escalations At My Station</div>
+</div>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap align-items-center">
+        <div class="saps-field-group" style="max-width: 240px;">
+            <i class="bi bi-funnel"></i>
+            <select name="statusId">
+                <option value="">All Statuses</option>
+                @foreach (var opt in statusOptions)
+                {
+                    <option value="@opt.Id" selected="@(statusId == opt.Id ? "selected" : null)">@opt.Name</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (statusId != null)
+        {
+            <a asp-controller="Escalations" asp-action="Station" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-exclamation-octagon"></i>
+            @(statusId == null ? "No escalations have been raised against your station." : "No escalations match that status.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Docket #</th>
+                        <th>Description</th>
+                        <th>Raised</th>
+                        <th>Status</th>
+                        <th>Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var escalation in Model.Items)
+                    {
+                        <tr>
+                            <td><a asp-controller="Dockets" asp-action="Details" asp-route-id="@escalation.DocketId" class="fw-semibold">#@escalation.DocketId</a></td>
+                            <td>@escalation.Description</td>
+                            <td>@escalation.EscalationDate.ToLocalTime()</td>
+                            <td><span class="badge @EEscalationStatus.GetBadgeClass(escalation.StatusId)">@EEscalationStatus.GetName(escalation.StatusId)</span></td>
+                            <td>
+                                <form asp-controller="Escalations" asp-action="UpdateStatus" asp-route-id="@escalation.Id" method="post" class="d-flex gap-2">
+                                    <select name="NewStatusId" class="form-select form-select-sm">
+                                        <option value="@EEscalationStatus.Open">Open</option>
+                                        <option value="@EEscalationStatus.InProgress">In Progress</option>
+                                        <option value="@EEscalationStatus.Resolved">Resolved</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i> Save</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "Escalations", Action = "Station", Page = Model.Page, TotalPages = Model.TotalPages,
+        RouteValues = statusId == null ? new() : new() { ["statusId"] = statusId.ToString()! }
+    })" />
+}

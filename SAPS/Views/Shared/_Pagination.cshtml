@@ -1,0 +1,32 @@
+@model SAPS.Models.PaginationViewModel
+@*
+    asp-route-page and asp-all-route-data both bind to the anchor tag helper's
+    same underlying RouteValues dictionary — combining them on one <a> lets
+    asp-all-route-data silently overwrite whatever asp-route-page set, so
+    every link loses its page number. Building one merged dictionary per link
+    (including "page") and passing only asp-all-route-data avoids that clash.
+*@
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-3" aria-label="Pages">
+        <ul class="pagination justify-content-center">
+            @{
+                var prevValues = new Dictionary<string, string>(Model.RouteValues) { ["page"] = (Model.Page - 1).ToString() };
+                var nextValues = new Dictionary<string, string>(Model.RouteValues) { ["page"] = (Model.Page + 1).ToString() };
+            }
+            <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                <a class="page-link" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="prevValues">Previous</a>
+            </li>
+            @for (var p = 1; p <= Model.TotalPages; p++)
+            {
+                var pageValues = new Dictionary<string, string>(Model.RouteValues) { ["page"] = p.ToString() };
+                <li class="page-item @(p == Model.Page ? "active" : "")">
+                    <a class="page-link" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="pageValues">@p</a>
+                </li>
+            }
+            <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                <a class="page-link" asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="nextValues">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

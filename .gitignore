@@ -1,0 +1,19 @@
+## .NET build artifacts
+bin/
+obj/
+*.user
+
+## Visual Studio
+.vs/
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## OS cruft
+.DS_Store
+Thumbs.db
+
+## Local overrides / secrets some setups keep separate from appsettings.json
+appsettings.Local.json
+appsettings.*.local.json

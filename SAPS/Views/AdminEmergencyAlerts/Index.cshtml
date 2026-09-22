@@ -1,0 +1,95 @@
+@model Logic.Model.PagedResult<Database.Entities.EmergencyAlert>
+@{
+    ViewData["Title"] = "Emergency Alerts";
+    long? statusId = ViewBag.StatusId;
+    long? stationId = ViewBag.StationId;
+    IEnumerable<Database.Entities.Station> stations = ViewBag.Stations;
+    var statusOptions = new (long Id, string Name)[] {
+        (EEmergencyAlertStatus.New, "New"),
+        (EEmergencyAlertStatus.Acknowledged, "Acknowledged"),
+    };
+    var hasFilter = statusId != null || stationId != null;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">Emergency Alerts</h1>
+    <div class="saps-breadcrumb">Home / Emergency Alerts</div>
+</div>
+
+<div class="card saps-card mb-3">
+    <form method="get" class="p-3 d-flex gap-2 flex-wrap align-items-center">
+        <div class="saps-field-group" style="max-width: 220px;">
+            <i class="bi bi-funnel"></i>
+            <select name="statusId">
+                <option value="">All Statuses</option>
+                @foreach (var opt in statusOptions)
+                {
+                    <option value="@opt.Id" selected="@(statusId == opt.Id ? "selected" : null)">@opt.Name</option>
+                }
+            </select>
+        </div>
+        <div class="saps-field-group" style="max-width: 260px;">
+            <i class="bi bi-building"></i>
+            <select name="stationId">
+                <option value="">All Stations</option>
+                @foreach (var station in stations)
+                {
+                    <option value="@station.Id" selected="@(stationId == station.Id ? "selected" : null)">@station.StationName</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+        @if (hasFilter)
+        {
+            <a asp-controller="AdminEmergencyAlerts" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Clear</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card saps-card">
+        <div class="saps-empty-state">
+            <i class="bi bi-shield-check"></i>
+            @(hasFilter ? "No emergency alerts match those filters." : "No emergency alerts have been raised yet.")
+        </div>
+    </div>
+}
+else
+{
+    <div class="card saps-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Complainant</th>
+                        <th>Message</th>
+                        <th>Station</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var alert in Model.Items)
+                    {
+                        <tr>
+                            <td>@(alert.NavComplainant?.FullName ?? "-")</td>
+                            <td class="text-truncate" style="max-width:260px;">@(alert.Message ?? "-")</td>
+                            <td>@(alert.NavNearestStation?.StationName ?? "-")</td>
+                            <td><span class="badge @EEmergencyAlertStatus.GetBadgeClass(alert.StatusId)">@EEmergencyAlertStatus.GetName(alert.StatusId)</span></td>
+                            <td>@alert.SubmissionTimestamp.ToLocalTime()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    var routeValues = new Dictionary<string, string>();
+    if (statusId != null) { routeValues["statusId"] = statusId.ToString()!; }
+    if (stationId != null) { routeValues["stationId"] = stationId.ToString()!; }
+
+    <partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+        Controller = "AdminEmergencyAlerts", Action = "Index", Page = Model.Page, TotalPages = Model.TotalPages, RouteValues = routeValues
+    })" />
+}
