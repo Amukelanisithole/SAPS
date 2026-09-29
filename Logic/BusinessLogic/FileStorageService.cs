@@ -4,11 +4,6 @@ using Microsoft.Extensions.Options;
 
 namespace Logic.BusinessLogic
 {
-    // Local-disk storage, same shape as BookingBackendApi's Documents
-    // approach (GUID-named files, only the relative path persisted) but
-    // rooted outside wwwroot — these files (identity photos, stamped legal
-    // documents) are read back only through an authenticated controller
-    // action, never served as public static paths.
     public class FileStorageService : IFileStorageService
     {
         private readonly string _rootPath;

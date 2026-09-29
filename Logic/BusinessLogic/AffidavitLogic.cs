@@ -318,8 +318,6 @@ namespace Logic.BusinessLogic
             });
         }
 
-        // Reference numbers double as the complainant's proof of submission,
-        // same convention as PreliminaryReport's, distinguished by prefix.
         private async Task<string> GenerateUniqueReferenceNumberAsync()
         {
             string candidate;

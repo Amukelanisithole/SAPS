@@ -65,10 +65,6 @@ namespace Logic.BusinessLogic
                     IpAddress = ipAddress
                 });
 
-                // Every officer/commander at the routed station is notified
-                // immediately (in-app, email, and SMS via NotificationLogic) —
-                // unlike a preliminary report, this isn't left waiting to be
-                // noticed in a review queue.
                 var stationStaffIds = await _context.Users
                     .Where(u => u.StationId == nearestStationId && u.IsActive && (u.RoleId == ERole.SapsOfficer || u.RoleId == ERole.StationCommander))
                     .Select(u => u.Id)

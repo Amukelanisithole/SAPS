@@ -33,9 +33,6 @@ namespace Logic.BusinessLogic
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
 
-            // Same response whether or not the account exists (and whether or
-            // not it's active), so this endpoint can't be used to enumerate
-            // registered email addresses.
             if (user == null || !user.IsActive)
             {
                 return new ResultModel { ResultId = EResultValue.Success, Message = GenericRequestMessage };
@@ -95,9 +92,6 @@ namespace Logic.BusinessLogic
             }
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            // A password reset is a legitimate proof of account ownership —
-            // clear any lockout so the user isn't still locked out right
-            // after successfully resetting their own password.
             user.FailedLoginAttempts = 0;
             user.LockoutEnd = null;
             resetToken.Used = true;

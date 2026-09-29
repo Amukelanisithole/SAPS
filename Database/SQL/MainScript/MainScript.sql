@@ -1,37 +1,17 @@
 BEGIN TRANSACTION
 
---Disable ALL Constraints Throughout the Database
 EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
 
--- =============================================
--- Roles  (fixed lookup table matching Logic.Enums.Enums.ERole constants —
--- not an IDENTITY column, the application always inserts/reads by these exact ids)
--- =============================================
 INSERT INTO [dbo].[Roles] ([Id], [Name]) VALUES (1, N'Complainant')
 INSERT INTO [dbo].[Roles] ([Id], [Name]) VALUES (2, N'SapsOfficer')
 INSERT INTO [dbo].[Roles] ([Id], [Name]) VALUES (3, N'StationCommander')
 INSERT INTO [dbo].[Roles] ([Id], [Name]) VALUES (4, N'SystemAdministrator')
 
--- =============================================
--- Users  — seeds the first System Administrator account so there is always
--- a way into the system (self-registration only ever creates Complainants).
--- Default password: ChangeMe123!  — CHANGE THIS before any real deployment.
--- =============================================
 SET IDENTITY_INSERT [dbo].[Users] ON
 INSERT INTO [dbo].[Users] ([Id], [FullName], [IdNumber], [Email], [PhoneNumber], [PasswordHash], [RoleId], [StationId], [CreatedDate], [LastLogin])
 VALUES (1, N'System Administrator', N'0000000000000', N'admin@saps.local', N'0000000000', N'$2a$11$ZsKePs8JaWvuBznKJOAwCO9rO/6iITsilQqP4hvX0pN7qjNCyzYri', 4, NULL, GETUTCDATE(), NULL)
 SET IDENTITY_INSERT [dbo].[Users] OFF
 
--- =============================================
--- EmailTemplates  (aligns with Logic.Enums.Enums.EEmailTemplates constants)
--- Id 1: Welcome            (EEmailTemplates.Welcome = 1) — also the verify-email message
--- Id 2: Password Reset     (EEmailTemplates.PasswordReset = 2)
--- Id 3: Case Notification  (EEmailTemplates.CaseNotification = 3)
--- Subject and Body both support {Token} placeholders, substituted by
--- Logic.BusinessLogic.EmailTemplateService at send time. Body content here
--- must be kept in sync with Database/Seed/EmailTemplateSeedData.cs, which
--- Program.cs uses to upsert these same rows on every app startup.
--- =============================================
 SET IDENTITY_INSERT [dbo].[EmailTemplates] ON
 
 INSERT INTO [dbo].[EmailTemplates] ([Id], [Name], [Description], [Subject], [Body], [Placeholders], [IsActive])
@@ -296,8 +276,6 @@ VALUES (
 
 SET IDENTITY_INSERT [dbo].[EmailTemplates] OFF
 
---Re-Enable All Constraints
 EXEC sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
 
---If Everything Is Successful Commit The Transaction
 COMMIT TRANSACTION

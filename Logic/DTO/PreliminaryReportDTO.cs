@@ -23,9 +23,6 @@ namespace Logic.DTO
         [Display(Name = "Supporting Information")]
         public string? SupportingInfo { get; set; }
 
-        // Captured client-side via the browser Geolocation API and validated as
-        // required in PreliminaryReportLogic — without it the report can't be
-        // routed to a station's review queue.
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
     }

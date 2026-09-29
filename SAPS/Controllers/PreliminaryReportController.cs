@@ -21,8 +21,6 @@ namespace SAPS.Controllers
             _preliminaryReportLogic = preliminaryReportLogic;
         }
 
-        // FR-01 / FR-02: a complainant submits a report and immediately receives
-        // its reference number back as proof of submission.
         [HttpPost("Submit")]
         [Authorize(Roles = "Complainant")]
         public async Task<IActionResult> Submit([FromBody] PreliminaryReportDTO dto)

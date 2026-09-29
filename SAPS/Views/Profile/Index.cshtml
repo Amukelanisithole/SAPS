@@ -74,7 +74,7 @@
                         <label asp-for="ChangePassword.NewPassword" class="form-label small fw-semibold text-muted"></label>
                         <div class="saps-field-group">
                             <i class="bi bi-lock-fill"></i>
-                            <input asp-for="ChangePassword.NewPassword" type="password" autocomplete="new-password" placeholder="New password" />
+                            <input asp-for="ChangePassword.NewPassword" type="password" autocomplete="new-password" placeholder="New password" data-strength-meter />
                             <button type="button" class="saps-toggle-password" data-target="ChangePassword_NewPassword" aria-label="Show password"><i class="bi bi-eye"></i></button>
                         </div>
                         <span asp-validation-for="ChangePassword.NewPassword" class="text-danger small"></span>

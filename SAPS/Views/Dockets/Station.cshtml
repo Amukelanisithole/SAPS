@@ -6,6 +6,7 @@
         (EDocketStatus.Open, "Open"),
         (EDocketStatus.UnderInvestigation, "Under Investigation"),
         (EDocketStatus.Referred, "Referred"),
+        (EDocketStatus.PendingClosure, "Pending Closure"),
         (EDocketStatus.Archived, "Archived"),
         (EDocketStatus.Closed, "Closed"),
     };
@@ -15,6 +16,50 @@
     <h1 class="h3 mb-0">Dockets At My Station</h1>
     <div class="saps-breadcrumb">Home / Dockets At My Station</div>
 </div>
+
+@{
+    var incoming = (ViewBag.IncomingReferrals as IEnumerable<Database.Entities.Referral>)?.ToList() ?? new();
+}
+@if (incoming.Any())
+{
+    <div class="card saps-card mb-3 border-warning">
+        <div class="saps-panel-header">
+            <span><i class="bi bi-inbox"></i> Incoming Referrals</span>
+            <span class="badge text-bg-warning">@incoming.Count awaiting acceptance</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Docket #</th>
+                        <th>From</th>
+                        <th>Incident</th>
+                        <th>Reason</th>
+                        <th>Requested</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var referral in incoming)
+                    {
+                        <tr>
+                            <td>@referral.DocketId</td>
+                            <td>@(referral.NavFromStation?.StationName ?? "-")</td>
+                            <td>@(referral.NavDocket?.NavReport?.IncidentType ?? "-")</td>
+                            <td class="text-truncate" style="max-width: 260px;" title="@referral.Reason">@referral.Reason</td>
+                            <td>@referral.ReferralDate.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>
+                                <a asp-controller="Dockets" asp-action="Details" asp-route-id="@referral.DocketId" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
 
 <div class="card saps-card mb-3">
     <form method="get" class="p-3 d-flex gap-2 flex-wrap align-items-center">
@@ -72,6 +117,9 @@ else
                             <td>
                                 <a asp-controller="Dockets" asp-action="Details" asp-route-id="@docket.Id" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-eye"></i> View
+                                </a>
+                                <a asp-controller="Dockets" asp-action="DownloadPdf" asp-route-id="@docket.Id" class="btn btn-sm btn-outline-primary" title="Download docket PDF">
+                                    <i class="bi bi-file-earmark-arrow-down"></i> PDF
                                 </a>
                             </td>
                         </tr>

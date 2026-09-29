@@ -4,10 +4,8 @@
 
 namespace Database.Migrations
 {
-    /// <inheritdoc />
     public partial class AddStationCoordinatesAndReportRouting : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<double>(
@@ -53,7 +51,6 @@ namespace Database.Migrations
                 principalColumn: "Id");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

@@ -58,8 +58,6 @@ namespace Logic.BusinessLogic
                     Timestamp = DateTime.UtcNow
                 });
 
-                // FR-09: Station Commanders at the docket's current station must be
-                // notified so escalated/unresolved cases can't quietly go unseen.
                 var commanderIds = await _context.Users
                     .Where(u => u.RoleId == ERole.StationCommander && u.StationId == docket.StationId)
                     .Select(u => u.Id)
@@ -163,7 +161,6 @@ namespace Logic.BusinessLogic
                     return new ResultModel<Escalation> { ResultId = EResultValue.Fail, Message = "Escalation not found." };
                 }
 
-                // NFR-02: a commander only resolves escalations raised against their own station.
                 if (escalation.NavDocket == null || commander?.StationId != escalation.NavDocket.StationId)
                 {
                     return new ResultModel<Escalation> { ResultId = EResultValue.Fail, Message = "You may only update escalations at your own station." };
@@ -180,9 +177,6 @@ namespace Logic.BusinessLogic
                     Timestamp = DateTime.UtcNow
                 });
 
-                // The complainant is notified for every other case event (status
-                // changes, referrals, new messages) — resolution of the escalation
-                // they themselves raised is the one they'd most want to know about.
                 await _notificationLogic.CreateAsync(
                     escalation.ComplainantId,
                     escalation.DocketId,

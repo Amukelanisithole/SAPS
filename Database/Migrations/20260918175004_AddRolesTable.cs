@@ -4,10 +4,8 @@
 
 namespace Database.Migrations
 {
-    /// <inheritdoc />
     public partial class AddRolesTable : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -41,7 +39,6 @@ namespace Database.Migrations
                 principalColumn: "Id");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

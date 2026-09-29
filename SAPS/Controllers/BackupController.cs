@@ -8,8 +8,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // FR-10 / NFR-08: recovery evidence — who ran a backup, when, and whether
-    // restoration from it has been tested. System Administrator only.
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "SystemAdministrator")]

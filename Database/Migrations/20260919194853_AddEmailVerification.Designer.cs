@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260919194853_AddEmailVerification")]
     partial class AddEmailVerification
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

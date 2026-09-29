@@ -15,8 +15,6 @@ namespace Logic.BusinessLogic
         public PoliceStationLookupService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            // Both OpenStreetMap services' usage policies require a descriptive
-            // User-Agent identifying the calling application.
             if (_httpClient.DefaultRequestHeaders.UserAgent.Count == 0)
             {
                 _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("SAPS-CrimePreReportingSystem/1.0");
@@ -52,8 +50,6 @@ namespace Logic.BusinessLogic
             }
             catch (Exception)
             {
-                // A flaky external lookup shouldn't crash report submission — the
-                // caller falls back to whatever stations already exist locally.
                 return Enumerable.Empty<NearbyPoliceStation>();
             }
         }

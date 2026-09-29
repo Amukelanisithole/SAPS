@@ -22,9 +22,6 @@ namespace Logic.DTO
         [Display(Name = "Contact Number")]
         public string ContactNumber { get; set; } = string.Empty;
 
-        // Required so every new station can be matched as someone's nearest —
-        // validated in StationLogic rather than with [Required] since 0 is a
-        // theoretically valid coordinate but the unset default for a double.
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
     }

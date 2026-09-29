@@ -22,6 +22,9 @@ namespace Database.AppDBContext
         public DbSet<BackupRecord> BackupRecords { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<DocketComment> DocketComments { get; set; }
+        public DbSet<DocketEvidence> DocketEvidence { get; set; }
+        public DbSet<DocketStatusHistory> DocketStatusHistory { get; set; }
+        public DbSet<DocketDiaryEntry> DocketDiaryEntries { get; set; }
         public DbSet<EmailTemplate> EmailTemplates { get; set; }
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
         public DbSet<Affidavit> Affidavits { get; set; }

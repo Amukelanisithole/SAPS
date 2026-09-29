@@ -3,10 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Logic.BusinessLogic
 {
-    // Registered instead of TwilioSmsSender when no Sms:AccountSid is
-    // configured (see Program.cs) — same reasoning as LoggingEmailSender:
-    // nothing is actually delivered, but the attempt (and its content) is
-    // visible in the log instead of silently vanishing.
     public class LoggingSmsSender : ISmsSender
     {
         private readonly ILogger<LoggingSmsSender> _logger;

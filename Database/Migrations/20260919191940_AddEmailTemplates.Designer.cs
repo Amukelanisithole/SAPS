@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260919191940_AddEmailTemplates")]
     partial class AddEmailTemplates
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

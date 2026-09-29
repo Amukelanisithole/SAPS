@@ -14,9 +14,6 @@ namespace Logic.Validation
 
         public override bool IsValid(object? value)
         {
-            // Presence is enforced separately by [Required] where applicable —
-            // an empty value here is left for that attribute to reject, so
-            // this only checks the format of whatever value is present.
             var idNumber = value as string;
             if (string.IsNullOrEmpty(idNumber)) return true;
 

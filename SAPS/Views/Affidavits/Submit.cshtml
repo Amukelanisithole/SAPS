@@ -193,7 +193,7 @@
         let cameraStream = null;
         let faceDetectionTimer = null;
         let faceDetectionModelsReady = false;
-        let faceDetectionAvailable = true; // false only if the models fail to load — degrades to allowing capture unguarded
+        let faceDetectionAvailable = true;
         let faceCurrentlyDetected = false;
 
         function updateSubmitState() {
@@ -203,17 +203,12 @@
             document.getElementById('submitAffidavitBtn').disabled = !(hasLocation && hasPhoto && hasIdDocument);
         }
 
-        // Loaded lazily (only once a camera is actually opened) so a visitor
-        // who never gets that far never pays for the model download.
         async function loadFaceDetectionModels() {
             if (faceDetectionModelsReady || !faceDetectionAvailable) return;
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri('/models/tiny_face_detector');
                 faceDetectionModelsReady = true;
             } catch (e) {
-                // No network access to the model, or the browser can't run it — fall
-                // back to allowing capture without the face check rather than
-                // blocking submission entirely over a best-effort safeguard.
                 faceDetectionAvailable = false;
             }
         }
@@ -302,11 +297,6 @@
         }
 
         function capturePhoto() {
-            // Belt-and-suspenders: the button is disabled unless a face is
-            // currently detected, but a face detection failure (see
-            // loadFaceDetectionModels/startFaceDetectionLoop) re-enables it
-            // deliberately, so this only actually blocks when detection is
-            // available and simply hasn't found a face yet.
             if (faceDetectionAvailable && faceDetectionModelsReady && !faceCurrentlyDetected) return;
 
             const video = document.getElementById('cameraVideo');
@@ -347,10 +337,6 @@
         document.getElementById('idDocumentInput').addEventListener('change', updateSubmitState);
         window.addEventListener('beforeunload', stopCameraStream);
 
-        // Working-address autocomplete, backed by the same free OpenStreetMap
-        // Nominatim search AdminStations/Create already uses for "Locate on
-        // Map" — debounced and aborts any in-flight lookup so a fast typist
-        // never has an old, slower response overwrite a newer one.
         (function () {
             const input = document.getElementById('WorkingAddress');
             const list = document.getElementById('addressSuggestions');
@@ -364,13 +350,6 @@
                 activeIndex = -1;
             }
 
-            // A query like "297 King" often only resolves to the road "King" —
-            // OpenStreetMap's address-point coverage (individual house numbers)
-            // is patchy in many South African areas, so Nominatim quietly drops
-            // any token it can't match rather than failing the whole search.
-            // Re-attach the door number the user actually typed whenever the
-            // match doesn't already carry one, so the field never silently loses
-            // it — the user knows their own street number better than OSM does.
             function extractLeadingHouseNumber(query) {
                 const match = query.trim().match(/^(\d+[a-zA-Z]?)\s+/);
                 return match ? match[1] : null;
@@ -382,13 +361,6 @@
                 return div.innerHTML;
             }
 
-            // Nominatim's raw display_name strings every administrative level
-            // (ward, municipality, district, province, postcode, country) into
-            // one long line, which is accurate but unreadable. Build a short
-            // "<number> <street>" / "<suburb>, <town>" pair instead — the level
-            // of detail a user actually needs to recognize their own address —
-            // falling back to display_name only when there isn't enough
-            // structured data to build that (e.g. an administrative-area match).
             function labelFor(result, typedQuery) {
                 const addr = result.address || {};
                 const road = addr.road || addr.pedestrian || addr.footway || result.name;
@@ -404,9 +376,6 @@
                 };
             }
 
-            // Google-style suggestion rows: a pin icon, the matched street in
-            // bold, and the broader area (suburb/town) trailing in muted text —
-            // the same visual hierarchy as Google Maps' own search suggestions.
             function renderSuggestions(results, typedQuery) {
                 list.innerHTML = '';
                 if (results.length === 0) {
@@ -424,7 +393,7 @@
                     item.innerHTML = `<i class="bi bi-geo-alt-fill text-muted mt-1"></i>` +
                         `<span><strong>${escapeHtml(primary)}</strong>${secondary ? `, <span class="text-muted">${escapeHtml(secondary)}</span>` : ''}</span>`;
                     item.addEventListener('mousedown', (e) => {
-                        e.preventDefault(); // keep focus so blur doesn't hide the list first
+                        e.preventDefault();
                         selectSuggestion(fullLabel);
                     });
                     list.appendChild(item);
@@ -458,8 +427,6 @@
                     const results = await res.json();
                     renderSuggestions(results, query);
                 } catch (e) {
-                    // Aborted (a newer keystroke superseded this lookup) or offline —
-                    // either way there's nothing useful to show for this query.
                 }
             }
 

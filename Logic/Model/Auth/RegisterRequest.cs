@@ -3,9 +3,6 @@ using Logic.Validation;
 
 namespace Logic.Model.Auth
 {
-    // Self-registration is for complainants only — SAPS Officer, Station
-    // Commander and System Administrator accounts are provisioned internally,
-    // not opened to the public via this endpoint.
     public class RegisterRequest
     {
         [Required(ErrorMessage = "Full name is required")]

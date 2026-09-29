@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260918180447_AddUserIsActive")]
     partial class AddUserIsActive
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

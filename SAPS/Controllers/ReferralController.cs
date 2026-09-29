@@ -21,7 +21,6 @@ namespace SAPS.Controllers
             _referralLogic = referralLogic;
         }
 
-        // FR-06: an officer moves a docket to another station or specialised unit.
         [HttpPost]
         [Authorize(Roles = "SapsOfficer")]
         public async Task<IActionResult> Create([FromBody] ReferralDTO dto)
@@ -39,7 +38,14 @@ namespace SAPS.Controllers
         [Authorize(Roles = "SapsOfficer,StationCommander,SystemAdministrator")]
         public async Task<IActionResult> GetByDocket(long docketId)
         {
-            var referrals = await _referralLogic.GetByDocketIdAsync(docketId);
+            var referrals = (await _referralLogic.GetByDocketIdAsync(docketId)).ToList();
+
+            if (User.GetRoleName() != "SystemAdministrator" && referrals.Count > 0
+                && !referrals.Any(r => r.FromStationId == User.GetStationId() || r.ToStationId == User.GetStationId()))
+            {
+                return Forbid();
+            }
+
             return Ok(new ResultModel { ResultId = EResultValue.Success, Message = "Successful", Data = JsonSerializer.Serialize(referrals, ApiJsonOptions.SafeSerialize) });
         }
     }

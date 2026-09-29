@@ -13,13 +13,6 @@
     var unreadNotificationCount = myNotifications.Count(n => !n.ReadStatus);
     var recentNotifications = myNotifications.Take(5).ToList();
 
-    // Unverified accounts are blocked from the actual page content everywhere
-    // this layout is used — not just nagged with a dismissible modal on top
-    // of it — except Emergency, which must never be gated behind anything,
-    // verification included, and Profile, so someone who mistyped their
-    // email at registration has a way to fix it (and isn't otherwise
-    // permanently stuck, since fixing it is the one thing that unblocks
-    // the gate) instead of just being told to check an inbox they can't reach.
     var isEmergencyPage = string.Equals(currentController, "Emergency", StringComparison.OrdinalIgnoreCase);
     var isProfilePage = string.Equals(currentController, "Profile", StringComparison.OrdinalIgnoreCase);
     var requiresEmailVerification = !User.GetEmailVerified() && !isEmergencyPage && !isProfilePage;
@@ -30,15 +23,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
-        // Set before any CSS paints, so there's no flash of the wrong theme
-        // or the wrong sidebar width.
         (function () {
             var saved = null;
-            try { saved = localStorage.getItem('saps-theme'); } catch (e) { /* private browsing, etc. */ }
+            try { saved = localStorage.getItem('saps-theme'); } catch (e) { }
             document.documentElement.setAttribute('data-bs-theme', saved === 'light' ? 'light' : 'dark');
 
             var sidebarCollapsed = false;
-            try { sidebarCollapsed = localStorage.getItem('saps-sidebar-collapsed') === 'true'; } catch (e) { /* private browsing, etc. */ }
+            try { sidebarCollapsed = localStorage.getItem('saps-sidebar-collapsed') === 'true'; } catch (e) { }
             if (sidebarCollapsed) {
                 document.documentElement.classList.add('saps-sidebar-collapsed');
             }
@@ -123,6 +114,11 @@
                             break;
                         case "SapsOfficer":
                             <li class="saps-sidebar-heading">Case Work</li>
+                            <li class="nav-item">
+                                <a class="saps-sidebar-link @(IsActive("Dockets", "Assigned") ? "active" : "")" asp-controller="Dockets" asp-action="Assigned" title="My Cases">
+                                    <i class="bi bi-person-workspace"></i> <span class="saps-sidebar-link-text">My Cases</span>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="saps-sidebar-link @(IsActive("Reports", "ForReview") ? "active" : "")" asp-controller="Reports" asp-action="ForReview" title="Reports For Review">
                                     <i class="bi bi-inbox"></i> <span class="saps-sidebar-link-text">Reports For Review</span>
@@ -213,7 +209,7 @@
                 <span class="navbar-brand mb-0 h6 d-lg-none text-truncate">@ViewData["Title"]</span>
 
                 <div class="ms-auto d-flex align-items-center gap-1">
-                    <a class="btn btn-danger btn-sm fw-bold me-1" asp-controller="Emergency" asp-action="Index" title="Emergency">
+                    <a class="btn btn-danger btn-sm fw-bold me-1 saps-pulse-danger" asp-controller="Emergency" asp-action="Index" title="Emergency">
                         <i class="bi bi-exclamation-triangle-fill"></i> <span class="d-none d-sm-inline">Emergency</span>
                     </a>
 
@@ -239,7 +235,7 @@
                             {
                                 foreach (var notification in recentNotifications)
                                 {
-                                    <a class="dropdown-item saps-notif-item @(notification.ReadStatus ? "" : "unread")" asp-controller="NotificationsPage" asp-action="Index">
+                                    <a class="dropdown-item saps-notif-item @(notification.ReadStatus ? "" : "unread")" asp-controller="NotificationsPage" asp-action="Open" asp-route-id="@notification.Id">
                                         <div class="small text-truncate">@notification.Message</div>
                                         <div class="text-muted" style="font-size:.75rem;">@notification.SentDate.ToLocalTime().ToString("dd MMM, HH:mm")</div>
                                     </a>

@@ -99,9 +99,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        // Widening search radii, matching the server's own lookup — real SAPS
-        // stations come from OpenStreetMap (Overpass API), not a pre-seeded list,
-        // so this is a live query, same as what actually decides routing.
         const LOOKUP_RADII_KM = [10, 25, 50];
         let map, userMarker, radiusCircle;
         const stationMarkers = [];
@@ -134,7 +131,6 @@
             }
         }
 
-        // Tries 10km first, widening only if nothing is tagged nearby yet.
         async function findNearbyStations(lat, lng) {
             for (const radiusKm of LOOKUP_RADII_KM) {
                 const found = await fetchPoliceStations(lat, lng, radiusKm);
@@ -211,8 +207,6 @@
             navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, { enableHighAccuracy: true, timeout: 10000 });
         }
 
-        // A gold teardrop pin (matching the site's accent color) so the nearest
-        // station stands out on the map instead of looking identical to the rest.
         const nearestIcon = L.divIcon({
             html: '<i class="bi bi-geo-alt-fill" style="font-size:2rem; color:#d9a441; text-shadow: 0 1px 3px rgba(0,0,0,.5);"></i>',
             className: '',
@@ -242,8 +236,6 @@
 
             const bounds = L.latLngBounds([[lat, lng]]);
 
-            // Every entry in "ranked" already fell within radiusKm — that's what
-            // bounded the Overpass query that produced it.
             ranked.forEach((r, i) => {
                 const isNearest = i === 0;
                 const marker = L.marker([r.station.Latitude, r.station.Longitude], isNearest ? { icon: nearestIcon, zIndexOffset: 1000 } : {})

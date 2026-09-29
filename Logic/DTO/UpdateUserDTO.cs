@@ -23,8 +23,6 @@ namespace Logic.DTO
         [Display(Name = "Role")]
         public long RoleId { get; set; }
 
-        // Required for SapsOfficer / StationCommander, ignored otherwise — enforced in
-        // UserManagementLogic since the requirement depends on the chosen RoleId.
         [Display(Name = "Station")]
         public long? StationId { get; set; }
     }

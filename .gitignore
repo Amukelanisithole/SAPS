@@ -17,3 +17,7 @@ Thumbs.db
 ## Local overrides / secrets some setups keep separate from appsettings.json
 appsettings.Local.json
 appsettings.*.local.json
+
+# Runtime data: Serilog log files and uploaded case files (ID photos, evidence) must never be committed.
+SAPS/Logs/
+SAPS/App_Data/uploads/

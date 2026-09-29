@@ -11,9 +11,6 @@ namespace Logic.BusinessLogic
 {
     public class AuthService : IAuthService
     {
-        // After this many consecutive failed attempts, the account is locked
-        // for LockoutDuration — slows down brute-force guessing without
-        // requiring a CAPTCHA or external rate-limiting infrastructure.
         private const int MaxFailedAttempts = 5;
         private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
@@ -59,8 +56,6 @@ namespace Logic.BusinessLogic
                     RoleId = ERole.Complainant,
                     StationId = null,
                     CreatedDate = DateTime.UtcNow,
-                    // Self-registration is the only path that requires the
-                    // verify-by-email flow — see User.EmailVerified.
                     EmailVerified = false
                 };
 
@@ -80,7 +75,6 @@ namespace Logic.BusinessLogic
                 }
                 catch (Exception ex)
                 {
-                    // A failed verification email should never block account creation.
                     _logger.LogWarning(ex, "Failed to send verification email to {Email}.", user.Email);
                 }
 

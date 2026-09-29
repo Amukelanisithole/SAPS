@@ -21,7 +21,6 @@ namespace SAPS.Controllers
             _escalationLogic = escalationLogic;
         }
 
-        // FR-07: a complainant escalates unresolved or poorly handled matters.
         [HttpPost]
         [Authorize(Roles = "Complainant")]
         public async Task<IActionResult> Create([FromBody] EscalationDTO dto)
@@ -43,7 +42,6 @@ namespace SAPS.Controllers
             return Ok(new ResultModel { ResultId = EResultValue.Success, Message = "Successful", Data = JsonSerializer.Serialize(escalations, ApiJsonOptions.SafeSerialize) });
         }
 
-        // FR-09: Station Commanders monitor escalations raised against their station.
         [HttpGet("Station")]
         [Authorize(Roles = "StationCommander")]
         public async Task<IActionResult> GetForMyStation()

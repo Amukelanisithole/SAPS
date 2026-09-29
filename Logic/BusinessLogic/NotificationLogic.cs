@@ -45,10 +45,6 @@ namespace Logic.BusinessLogic
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            // Every notification is also written to the database row above
-            // regardless of what happens here, so a user always sees it next
-            // time they log in even if delivery fails or isn't configured —
-            // this is best-effort, not the source of truth.
             await TryDeliverAsync(userId, docketId, message);
 
             return notification;
@@ -122,6 +118,12 @@ namespace Logic.BusinessLogic
                 .ToListAsync(ct);
 
             return new PagedResult<Notification> { Items = items, Page = page, PageSize = pageSize, TotalCount = totalCount };
+        }
+
+        public async Task<Notification?> GetMineByIdAsync(long notificationId, long userId)
+        {
+            return await _context.Notifications.AsNoTracking()
+                .FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId);
         }
 
         public async Task<ResultModel> MarkAsReadAsync(long notificationId, long userId)

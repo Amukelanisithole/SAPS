@@ -6,10 +6,6 @@ using QuestPDF.Infrastructure;
 
 namespace Logic.BusinessLogic
 {
-    // Renders any ReportTableDTO as a landscape, paginated table — one
-    // generic layout for every report kind, since they only differ in
-    // column count/content, not structure. QuestPDF.Settings.License is set
-    // once at startup (see Program.cs).
     public class PdfExportService : IPdfExportService
     {
         public byte[] Generate(ReportTableDTO table)

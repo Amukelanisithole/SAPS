@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260921183531_AddEmergencyAlerts")]
     partial class AddEmergencyAlerts
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

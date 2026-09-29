@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260919110716_AddPasswordResetAndAccountLockout")]
     partial class AddPasswordResetAndAccountLockout
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SAPS.Extensions;
 using SAPS.Models;
+using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
@@ -19,6 +20,9 @@ namespace SAPS.Controllers
         private readonly IBackupLogic _backupLogic;
         private readonly IAffidavitLogic _affidavitLogic;
         private readonly IEmergencyAlertLogic _emergencyAlertLogic;
+        private readonly IReferralLogic _referralLogic;
+        private readonly IDocketEvidenceLogic _docketEvidenceLogic;
+        private readonly Logic.Model.DocketSettings _docketSettings;
 
         public DashboardController(
             IPreliminaryReportLogic preliminaryReportLogic,
@@ -29,8 +33,14 @@ namespace SAPS.Controllers
             IStationLogic stationLogic,
             IBackupLogic backupLogic,
             IAffidavitLogic affidavitLogic,
-            IEmergencyAlertLogic emergencyAlertLogic)
+            IEmergencyAlertLogic emergencyAlertLogic,
+            IReferralLogic referralLogic,
+            IDocketEvidenceLogic docketEvidenceLogic,
+            Microsoft.Extensions.Options.IOptions<Logic.Model.DocketSettings> docketSettings)
         {
+            _referralLogic = referralLogic;
+            _docketEvidenceLogic = docketEvidenceLogic;
+            _docketSettings = docketSettings.Value;
             _preliminaryReportLogic = preliminaryReportLogic;
             _docketLogic = docketLogic;
             _escalationLogic = escalationLogic;
@@ -42,8 +52,6 @@ namespace SAPS.Controllers
             _emergencyAlertLogic = emergencyAlertLogic;
         }
 
-        // A single landing URL for everyone — which view (and data) is served
-        // depends entirely on the signed-in user's role.
         public async Task<IActionResult> Index()
         {
             var userId = User.GetUserId();
@@ -83,8 +91,17 @@ namespace SAPS.Controllers
                         var activeEmergencyAlerts = stationId == null
                             ? new List<Database.Entities.EmergencyAlert>()
                             : (await _emergencyAlertLogic.GetForStationAsync(stationId.Value)).ToList();
+                        var overdueDays = _docketSettings.FeedbackOverdueDays;
+                        var myDockets = (await _docketLogic.GetAssignedPagedAsync(userId, 1, 200, includeFinished: false)).Items;
                         return View("Officer", new OfficerDashboardViewModel
                         {
+                            MyActiveDocketCount = myDockets.Count,
+                            MyUpdatesDueCount = myDockets.Count(d => d.Docket.StatusId is (EDocketStatus.Open or EDocketStatus.UnderInvestigation)
+                                && (DateTime.UtcNow - d.LastActivity).TotalDays >= overdueDays),
+                            MyReportsInReviewCount = (await _preliminaryReportLogic.GetUnderReviewByOfficerAsync(userId)).Count(),
+                            MyEvidenceToReviewCount = await _docketEvidenceLogic.CountPendingForInvestigatorAsync(userId),
+                            OverdueThresholdDays = overdueDays,
+                            MyDockets = myDockets.Take(5),
                             ReportsAwaitingReviewCount = reportsAwaitingReview.Count,
                             DocketsAtMyStationCount = docketsAtStation.Count,
                             AffidavitsAwaitingReviewCount = affidavitsAwaitingReview.Count,
@@ -111,8 +128,16 @@ namespace SAPS.Controllers
                         var activeEmergencyAlerts = stationId == null
                             ? new List<Database.Entities.EmergencyAlert>()
                             : (await _emergencyAlertLogic.GetForStationAsync(stationId.Value)).ToList();
+                        var commanderOverdueDays = _docketSettings.FeedbackOverdueDays;
                         return View("Commander", new CommanderDashboardViewModel
                         {
+                            WorkQueue = stationId == null
+                                ? new Logic.Model.StationWorkQueue()
+                                : await _docketLogic.GetStationWorkQueueAsync(stationId.Value, commanderOverdueDays),
+                            IncomingReferrals = stationId == null
+                                ? Enumerable.Empty<Database.Entities.Referral>()
+                                : await _referralLogic.GetPendingIncomingAsync(stationId.Value),
+                            OverdueThresholdDays = commanderOverdueDays,
                             EscalationCount = escalations.Count,
                             DocketsAtMyStationCount = docketsAtStation.Count,
                             AffidavitsAwaitingReviewCount = affidavitsAwaitingReview.Count,

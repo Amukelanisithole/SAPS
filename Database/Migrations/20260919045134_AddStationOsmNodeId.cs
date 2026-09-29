@@ -4,10 +4,8 @@
 
 namespace Database.Migrations
 {
-    /// <inheritdoc />
     public partial class AddStationOsmNodeId : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<long>(
@@ -24,7 +22,6 @@ namespace Database.Migrations
                 filter: "[OsmNodeId] IS NOT NULL");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(

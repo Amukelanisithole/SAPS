@@ -1,11 +1,5 @@
 namespace Database.Entities
 {
-    // A fast, minimal-friction "flag my nearest station right now" action —
-    // deliberately not routed through the full PreliminaryReport pipeline,
-    // which asks for an incident type/description that someone in a genuine
-    // emergency shouldn't have to stop and fill in. This is explicitly
-    // supplementary to calling real emergency services, never a replacement —
-    // see EmergencyController.Index, which leads with those numbers first.
     public class EmergencyAlert
     {
         public long Id { get; set; }

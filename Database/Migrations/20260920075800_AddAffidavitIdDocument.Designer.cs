@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260920075800_AddAffidavitIdDocument")]
     partial class AddAffidavitIdDocument
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

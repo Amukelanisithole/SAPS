@@ -12,9 +12,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // Every signed-in user — any role — has a profile: update their own
-    // contact details or change their own password. No Roles restriction,
-    // unlike the Admin* controllers, which manage OTHER users' accounts.
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     public class ProfileController : Controller
     {
@@ -57,9 +54,6 @@ namespace SAPS.Controllers
                 await _emailVerificationLogic.SendVerificationEmailAsync(result.Data.Id, BuildVerificationLink);
             }
 
-            // The cookie's claims (name, email, verified status) were baked in
-            // at login and won't otherwise reflect what was just changed until
-            // the next sign-in — refresh them now so the topbar/gate see it immediately.
             await RefreshSignInAsync(result.Data);
 
             TempData["SuccessMessage"] = emailChanged

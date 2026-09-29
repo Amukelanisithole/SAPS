@@ -1,0 +1,125 @@
+@model MyCasesViewModel
+@{
+    ViewData["Title"] = "My Cases";
+    var reports = Model.ReportsUnderReview.ToList();
+    var now = DateTime.UtcNow;
+}
+
+<div class="saps-content-header">
+    <h1 class="h3 mb-0">My Cases</h1>
+    <div class="saps-breadcrumb">Home / My Cases</div>
+</div>
+
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header">
+        <span><i class="bi bi-hourglass-split"></i> Reports I'm Reviewing</span>
+        <span class="badge text-bg-secondary">@reports.Count</span>
+    </div>
+    @if (!reports.Any())
+    {
+        <div class="saps-empty-state">
+            <i class="bi bi-inbox"></i>
+            No reports in review. Pick one up from <a asp-controller="Reports" asp-action="ForReview">Reports For Review</a>.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Incident</th>
+                        <th>Location</th>
+                        <th>Submitted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in reports)
+                    {
+                        <tr>
+                            <td>@report.ReferenceNumber</td>
+                            <td>@report.IncidentType</td>
+                            <td class="text-truncate" style="max-width: 240px;" title="@report.IncidentLocation">@report.IncidentLocation</td>
+                            <td>@report.SubmissionTimestamp.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>
+                                <a asp-controller="Reports" asp-action="Details" asp-route-id="@report.Id" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> Open
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<div class="card saps-card">
+    <div class="saps-panel-header">
+        <span><i class="bi bi-person-workspace"></i> Dockets Assigned To Me</span>
+        <span class="d-flex align-items-center gap-3">
+            <a asp-controller="Dockets" asp-action="Assigned" asp-route-includeFinished="@(!Model.IncludeFinished)" class="small">
+                @(Model.IncludeFinished ? "Hide closed & archived" : "Show closed & archived")
+            </a>
+            <span class="badge text-bg-secondary">@Model.Dockets.TotalCount</span>
+        </span>
+    </div>
+    @if (!Model.Dockets.Items.Any())
+    {
+        <div class="saps-empty-state">
+            <i class="bi bi-folder2"></i>
+            No dockets are assigned to you. Your station commander assigns investigating officers.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Docket #</th>
+                        <th>CAS Number</th>
+                        <th>Incident</th>
+                        <th>Status</th>
+                        <th>Last Diary Activity</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Dockets.Items)
+                    {
+                        var docket = item.Docket;
+                        var isActive = docket.StatusId is EDocketStatus.Open or EDocketStatus.UnderInvestigation;
+                        var days = (int)(now - item.LastActivity).TotalDays;
+                        var isOverdue = isActive && days >= Model.OverdueThresholdDays;
+                        <tr class="@(isOverdue ? "table-warning" : "")">
+                            <td>@docket.Id</td>
+                            <td>@(docket.CasNumber ?? "-")</td>
+                            <td>@(docket.NavReport?.IncidentType ?? "-")</td>
+                            <td><span class="badge @EDocketStatus.GetBadgeClass(docket.StatusId)">@EDocketStatus.GetName(docket.StatusId)</span></td>
+                            <td>
+                                @(days == 0 ? "Today" : days == 1 ? "1 day ago" : $"{days} days ago")
+                                @if (isOverdue)
+                                {
+                                    <span class="badge text-bg-warning ms-1"><i class="bi bi-alarm"></i> Update due</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Dockets" asp-action="Details" asp-route-id="@docket.Id" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<partial name="_Pagination" model="@(new SAPS.Models.PaginationViewModel {
+    Controller = "Dockets", Action = "Assigned", Page = Model.Dockets.Page, TotalPages = Model.Dockets.TotalPages,
+    RouteValues = Model.IncludeFinished ? new() { ["includeFinished"] = "true" } : new()
+})" />

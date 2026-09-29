@@ -6,10 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace Logic.BusinessLogic
 {
-    // Talks to Twilio's REST API directly over HttpClient (no Twilio SDK
-    // dependency needed — it's a single form-encoded POST with HTTP basic
-    // auth) so this only takes effect once an operator supplies a real
-    // Account SID / Auth Token / From number under the Sms: config section.
     public class TwilioSmsSender : ISmsSender
     {
         private readonly HttpClient _httpClient;

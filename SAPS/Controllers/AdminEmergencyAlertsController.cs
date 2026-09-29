@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SAPS.Controllers
 {
-    // "Admin" prefix mirrors AdminAffidavits — a system-wide browse view so
-    // an administrator can see every emergency alert ever raised, not just
-    // the ones currently active at a given station.
     [Route("Admin/EmergencyAlerts")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
     public class AdminEmergencyAlertsController : Controller

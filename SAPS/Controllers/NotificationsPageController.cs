@@ -6,7 +6,6 @@ using SAPS.Extensions;
 
 namespace SAPS.Controllers
 {
-    // "Page" suffix avoids colliding with the existing api/Notification JSON controller.
     [Route("Notifications")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     public class NotificationsPageController : Controller
@@ -26,6 +25,25 @@ namespace SAPS.Controllers
             var notifications = await _notificationLogic.GetMinePagedAsync(User.GetUserId(), page, PageSize, readStatus);
             ViewBag.ReadStatus = readStatus;
             return View(notifications);
+        }
+
+        [HttpGet("{id}/Open")]
+        public async Task<IActionResult> Open(long id)
+        {
+            var notification = await _notificationLogic.GetMineByIdAsync(id, User.GetUserId());
+            if (notification == null)
+            {
+                return NotFound();
+            }
+
+            if (!notification.ReadStatus)
+            {
+                await _notificationLogic.MarkAsReadAsync(id, User.GetUserId());
+            }
+
+            return notification.DocketId != null
+                ? RedirectToAction("Details", "Dockets", new { id = notification.DocketId })
+                : RedirectToAction(nameof(Index));
         }
 
         [HttpPost("{id}/Read")]

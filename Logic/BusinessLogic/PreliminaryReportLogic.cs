@@ -12,11 +12,90 @@ namespace Logic.BusinessLogic
     {
         private readonly ApplicationDbContext _context;
         private readonly IStationRoutingService _stationRoutingService;
+        private readonly INotificationLogic _notificationLogic;
 
-        public PreliminaryReportLogic(ApplicationDbContext context, IStationRoutingService stationRoutingService)
+        public PreliminaryReportLogic(ApplicationDbContext context, IStationRoutingService stationRoutingService, INotificationLogic notificationLogic)
         {
             _context = context;
             _stationRoutingService = stationRoutingService;
+            _notificationLogic = notificationLogic;
+        }
+
+        public async Task<ResultModel<PreliminaryReport>> StartReviewAsync(long reportId, long officerId)
+        {
+            try
+            {
+                var (report, error) = await LoadForOfficerActionAsync(reportId, officerId);
+                if (error != null) return error;
+
+                if (report!.StatusId != EReportStatus.Submitted)
+                {
+                    return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = $"This report is already {EReportStatus.GetName(report.StatusId)}." };
+                }
+
+                report.StatusId = EReportStatus.UnderReview;
+                report.ReviewedByOfficerId = officerId;
+                await _context.SaveChangesAsync();
+
+                await _notificationLogic.CreateAsync(report.ComplainantId, null, $"Your report {report.ReferenceNumber} is now being reviewed by a SAPS officer.");
+
+                return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Success, Message = "Report marked as under review.", Data = report };
+            }
+            catch (Exception ex)
+            {
+                return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = $"An error occurred while updating the report: {ex.Message}" };
+            }
+        }
+
+        public async Task<ResultModel<PreliminaryReport>> RejectAsync(long reportId, long officerId, ReportRejectDTO dto)
+        {
+            try
+            {
+                var (report, error) = await LoadForOfficerActionAsync(reportId, officerId);
+                if (error != null) return error;
+
+                if (report!.StatusId is not (EReportStatus.Submitted or EReportStatus.UnderReview))
+                {
+                    return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = $"A report that is {EReportStatus.GetName(report.StatusId)} cannot be rejected." };
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.Reason))
+                {
+                    return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = "Please give a reason for rejecting this report." };
+                }
+
+                report.StatusId = EReportStatus.Rejected;
+                report.ReviewedByOfficerId = officerId;
+                report.RejectionReason = dto.Reason.Trim();
+                await _context.SaveChangesAsync();
+
+                await _notificationLogic.CreateAsync(report.ComplainantId, null,
+                    $"Your report {report.ReferenceNumber} was not accepted. Reason: {report.RejectionReason}");
+
+                return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Success, Message = "Report rejected and the complainant notified.", Data = report };
+            }
+            catch (Exception ex)
+            {
+                return new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = $"An error occurred while rejecting the report: {ex.Message}" };
+            }
+        }
+
+        private async Task<(PreliminaryReport? Report, ResultModel<PreliminaryReport>? Error)> LoadForOfficerActionAsync(long reportId, long officerId)
+        {
+            var officer = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == officerId);
+            var report = await _context.PreliminaryReports.FirstOrDefaultAsync(r => r.Id == reportId);
+
+            if (report == null)
+            {
+                return (null, new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = "Preliminary report not found." });
+            }
+
+            if (officer?.StationId == null || (report.NearestStationId != null && report.NearestStationId != officer.StationId))
+            {
+                return (null, new ResultModel<PreliminaryReport> { ResultId = EResultValue.Fail, Message = "You may only action reports routed to your own station." });
+            }
+
+            return (report, null);
         }
 
         public async Task<ResultModel<PreliminaryReport>> SubmitAsync(long complainantId, PreliminaryReportDTO dto)
@@ -61,11 +140,20 @@ namespace Logic.BusinessLogic
             }
         }
 
+        public async Task<IEnumerable<PreliminaryReport>> GetUnderReviewByOfficerAsync(long officerId)
+        {
+            return await _context.PreliminaryReports
+                .Where(r => r.StatusId == EReportStatus.UnderReview && r.ReviewedByOfficerId == officerId)
+                .OrderBy(r => r.SubmissionTimestamp)
+                .ToListAsync();
+        }
+
         public async Task<PreliminaryReport?> GetByIdAsync(long id)
         {
             return await _context.PreliminaryReports
                 .Include(r => r.NavDocket)
                 .Include(r => r.NavNearestStation)
+                .Include(r => r.NavReviewedByOfficer)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
@@ -77,8 +165,6 @@ namespace Logic.BusinessLogic
                 .ToListAsync();
         }
 
-        // Routed reports only reach the officers at their nearest-matched station —
-        // this is the actual "send that report to that station" behavior.
         public async Task<IEnumerable<PreliminaryReport>> GetForReviewAsync(long stationId)
         {
             return await _context.PreliminaryReports
@@ -115,6 +201,7 @@ namespace Logic.BusinessLogic
             pageSize = Math.Clamp(pageSize, 1, 200);
 
             var query = _context.PreliminaryReports
+                .Include(r => r.NavReviewedByOfficer)
                 .Where(r => (r.StatusId == EReportStatus.Submitted || r.StatusId == EReportStatus.UnderReview)
                             && r.NearestStationId == stationId);
             if (statusId != null)
@@ -132,8 +219,6 @@ namespace Logic.BusinessLogic
             return new PagedResult<PreliminaryReport> { Items = items, Page = page, PageSize = pageSize, TotalCount = totalCount };
         }
 
-        // Reference numbers double as the complainant's proof of submission (FR-02),
-        // so a collision would let one report silently shadow another's reference.
         private async Task<string> GenerateUniqueReferenceNumberAsync()
         {
             string candidate;

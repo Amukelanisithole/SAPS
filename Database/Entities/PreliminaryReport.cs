@@ -12,14 +12,14 @@ namespace Database.Entities
         public string? SupportingInfo { get; set; }
         public DateTime SubmissionTimestamp { get; set; }
         public long StatusId { get; set; }
-        // Captured from the complainant's device at submission time and resolved,
-        // server-side, to the closest station with known coordinates — this is what
-        // scopes the report into that station's officers' review queue.
         public double? ComplainantLatitude { get; set; }
         public double? ComplainantLongitude { get; set; }
         public long? NearestStationId { get; set; }
+        public long? ReviewedByOfficerId { get; set; }
+        public string? RejectionReason { get; set; }
 
         public User? NavComplainant { get; set; }
+        public User? NavReviewedByOfficer { get; set; }
         public Docket? NavDocket { get; set; }
         public Station? NavNearestStation { get; set; }
     }

@@ -52,7 +52,7 @@ else
                 <tbody>
                     @foreach (var notification in Model.Items)
                     {
-                        <tr class="@(notification.ReadStatus ? "" : "table-warning")">
+                        <tr class="@(notification.ReadStatus ? "" : "saps-notif-row-unread")">
                             <td>@notification.Message</td>
                             <td>@notification.SentDate.ToLocalTime()</td>
                             <td>
@@ -66,14 +66,22 @@ else
                                 }
                             </td>
                             <td>
-                                @if (!notification.ReadStatus)
-                                {
-                                    <form asp-controller="NotificationsPage" asp-action="MarkAsRead" asp-route-id="@notification.Id" method="post">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-check2-square"></i> Mark as Read
-                                        </button>
-                                    </form>
-                                }
+                                <div class="d-flex gap-2 flex-wrap">
+                                    @if (notification.DocketId != null)
+                                    {
+                                        <a asp-controller="NotificationsPage" asp-action="Open" asp-route-id="@notification.Id" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-folder2-open"></i> Open Docket #@notification.DocketId
+                                        </a>
+                                    }
+                                    @if (!notification.ReadStatus)
+                                    {
+                                        <form asp-controller="NotificationsPage" asp-action="MarkAsRead" asp-route-id="@notification.Id" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-check2-square"></i> Mark as Read
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

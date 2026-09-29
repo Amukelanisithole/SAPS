@@ -15,9 +15,6 @@ namespace Logic.BusinessLogic
                 sb.AppendLine(string.Join(',', row.Select(Escape)));
             }
 
-            // UTF-8 BOM so Excel (still the most likely consumer of a CSV
-            // export like this) renders non-ASCII characters correctly
-            // instead of guessing the wrong codepage.
             var preamble = Encoding.UTF8.GetPreamble();
             var body = Encoding.UTF8.GetBytes(sb.ToString());
             var result = new byte[preamble.Length + body.Length];

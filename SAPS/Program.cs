@@ -8,24 +8,31 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Globalization;
 using System.Text;
 using static Logic.Enums.Enums;
 
-// This app has no real localization need, but browser-generated numeric values
-// (e.g. geolocation coordinates from JS, always period-decimal) must still bind
-// correctly regardless of the server machine's regional settings. Without this,
-// a server whose OS culture uses a comma decimal separator (e.g. en-ZA) rejects
-// perfectly valid coordinates like "-29.768..." during model binding.
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+{
+    Log.Fatal(e.ExceptionObject as Exception, "SAPS terminated unexpectedly");
+    Log.CloseAndFlush();
+};
+
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-// QuestPDF requires a license selection before any document is generated.
-// Community is free for this project's use (see its licensing terms if this
-// is ever deployed commercially at scale).
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration
+    .ReadFrom.Configuration(builder.Configuration)
+    .ReadFrom.Services(services));
 
 builder.Services.AddControllersWithViews();
 
@@ -48,7 +55,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -75,14 +84,17 @@ builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IAffidavitLogic, AffidavitLogic>();
 builder.Services.AddScoped<IEmergencyAlertLogic, EmergencyAlertLogic>();
 builder.Services.AddScoped<IAffidavitPdfService, AffidavitPdfService>();
+builder.Services.AddScoped<IDocketEvidenceLogic, DocketEvidenceLogic>();
+builder.Services.AddScoped<IDocketPdfService, DocketPdfService>();
+builder.Services.AddScoped<IDocketExportLogic, DocketExportLogic>();
+builder.Services.AddScoped<IDocketDiaryLogic, DocketDiaryLogic>();
+builder.Services.AddScoped<IDocketFollowUpLogic, DocketFollowUpLogic>();
+builder.Services.Configure<Logic.Model.DocketSettings>(builder.Configuration.GetSection("Dockets"));
+builder.Services.AddHostedService<SAPS.Services.DocketFollowUpService>();
 
 builder.Services.Configure<Logic.Model.AppSettings>(builder.Configuration.GetSection("App"));
 builder.Services.PostConfigure<Logic.Model.AppSettings>(options =>
 {
-    // Logic-layer code has no concept of a hosting content root, so the web
-    // project resolves the default here — an operator can still override it
-    // via "App:UploadsRootPath" in configuration if uploads need to live
-    // somewhere other than the app's own content root (e.g. a mounted volume).
     if (string.IsNullOrWhiteSpace(options.UploadsRootPath))
     {
         options.UploadsRootPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "uploads");
@@ -93,9 +105,6 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
 if (string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]))
 {
-    // No SMTP server configured (the common case until an operator sets one
-    // up) — fall back to logging the email content instead of failing the
-    // whole password-reset flow.
     builder.Services.AddScoped<IEmailSender, LoggingEmailSender>();
 }
 else
@@ -117,11 +126,6 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"];
 if (string.IsNullOrWhiteSpace(secretKey))
 {
-    // Fails fast with a clear message instead of a confusing crash deep inside
-    // JWT validation. In Development this is set via `dotnet user-secrets set
-    // JwtSettings:Secret "..."` (see SAPS/SAPS.csproj's UserSecretsId); in any
-    // other environment it must come from an environment variable
-    // (JwtSettings__Secret) or another real secret store — never appsettings.json.
     throw new InvalidOperationException(
         "JwtSettings:Secret is not configured. Set it via 'dotnet user-secrets set JwtSettings:Secret \"<value>\"' " +
         "in Development, or the JwtSettings__Secret environment variable elsewhere. It must never be committed to appsettings.json.");
@@ -146,22 +150,19 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 })
-// Bearer stays the default scheme so every existing [Authorize] on the api/*
-// controllers keeps resolving to JWT untouched. The website's own pages
-// (Account/Dashboard) opt into this cookie scheme explicitly instead.
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromMinutes(jwtSettings.GetValue<int>("ExpirationInMinutes"));
-    // NFR-09: the session should expire after a period of INactivity, not a fixed
-    // lifetime, so each request within the window renews it.
     options.SlidingExpiration = true;
 });
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.Lifetime.ApplicationStopped.Register(Log.CloseAndFlush);
 
 using (var scope = app.Services.CreateScope())
 {
@@ -185,9 +186,6 @@ using (var scope = app.Services.CreateScope())
         var seedPassword = seedAdmin["Password"];
         if (string.IsNullOrWhiteSpace(seedPassword))
         {
-            // Same reasoning as JwtSettings:Secret above — never fall back to a
-            // hardcoded default password for the one account that's guaranteed
-            // to exist on every deployment.
             app.Logger.LogWarning(
                 "No SystemAdministrator account exists and SeedAdmin:Password is not configured, so none was created. " +
                 "Set it via 'dotnet user-secrets set SeedAdmin:Password \"<value>\"' in Development, or the " +
@@ -210,12 +208,6 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // MainScript.sql seeds these same rows (with matching ids) for a fresh
-    // manual database setup. This upserts by Name on every startup instead
-    // of only inserting once, so edits to EmailTemplateSeedData (wording,
-    // the logo, new placeholders) reach an already-provisioned database —
-    // like this one, mid-development — without that script being re-run by
-    // hand or the content silently going stale.
     foreach (var seedTemplate in EmailTemplateSeedData.GetSeedTemplates())
     {
         var existingTemplate = context.EmailTemplates.FirstOrDefault(t => t.Name == seedTemplate.Name);
@@ -239,6 +231,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 

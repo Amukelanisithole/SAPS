@@ -9,7 +9,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // "Admin" prefix avoids colliding with the existing api/Users JSON controller.
     [Route("Admin/Users")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
     public class AdminUsersController : Controller

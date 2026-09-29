@@ -24,8 +24,6 @@ namespace Logic.BusinessLogic
             _auditLogWriter = auditLogWriter;
         }
 
-        // Officers and commanders are tied to a physical station; complainants and
-        // administrators are not, so the requirement is conditional on the role.
         private static bool RequiresStation(long roleId) => roleId == ERole.SapsOfficer || roleId == ERole.StationCommander;
 
         private async Task<string?> ValidateRoleAndStationAsync(long roleId, long? stationId)
@@ -201,10 +199,6 @@ namespace Logic.BusinessLogic
                     return new ResultModel<User> { ResultId = EResultValue.Fail, Message = "Another user already uses this email." };
                 }
 
-                // Changing the address on file means whoever's typing it now
-                // hasn't proven they can read mail sent there yet — the caller
-                // is responsible for sending a fresh verification email
-                // whenever this comes back with the email actually changed.
                 if (!string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     user.EmailVerified = false;

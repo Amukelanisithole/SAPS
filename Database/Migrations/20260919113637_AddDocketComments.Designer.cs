@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260919113637_AddDocketComments")]
     partial class AddDocketComments
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

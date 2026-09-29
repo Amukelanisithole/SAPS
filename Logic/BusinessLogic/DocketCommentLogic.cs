@@ -37,10 +37,6 @@ namespace Logic.BusinessLogic
                 .ToListAsync();
         }
 
-        // Authorization (is this author actually allowed on this docket?) is
-        // enforced by the controller, same as every other Dockets action —
-        // this just persists the message and notifies whichever side didn't
-        // write it, so a two-way conversation doesn't require polling.
         public async Task<ResultModel> AddAsync(long authorId, DocketCommentDTO dto)
         {
             var docket = await _context.Dockets
@@ -50,6 +46,11 @@ namespace Logic.BusinessLogic
             if (docket == null)
             {
                 return new ResultModel { ResultId = EResultValue.Fail, Message = "Docket not found." };
+            }
+
+            if (EDocketStatus.IsFinal(docket.StatusId))
+            {
+                return new ResultModel { ResultId = EResultValue.Fail, Message = $"This docket is {EDocketStatus.GetName(docket.StatusId)} — messaging is closed." };
             }
 
             _context.DocketComments.Add(new DocketComment
@@ -62,7 +63,7 @@ namespace Logic.BusinessLogic
             await _context.SaveChangesAsync();
 
             var complainantId = docket.NavReport?.ComplainantId;
-            var recipientId = authorId == complainantId ? docket.ReviewingOfficerId : complainantId;
+            var recipientId = authorId == complainantId ? docket.InvestigatingOfficerId ?? docket.ReviewingOfficerId : complainantId;
 
             if (recipientId.HasValue && recipientId.Value != authorId)
             {
