@@ -8,6 +8,9 @@ namespace Logic.BusinessLogicInterface
     {
         Task<ResultModel<PreliminaryReport>> SubmitAsync(long complainantId, PreliminaryReportDTO dto);
         Task<PreliminaryReport?> GetByIdAsync(long id);
+        Task<IEnumerable<PreliminaryReport>> GetUnderReviewByOfficerAsync(long officerId);
+        Task<ResultModel<PreliminaryReport>> StartReviewAsync(long reportId, long officerId);
+        Task<ResultModel<PreliminaryReport>> RejectAsync(long reportId, long officerId, ReportRejectDTO dto);
         Task<IEnumerable<PreliminaryReport>> GetMineAsync(long complainantId);
         Task<IEnumerable<PreliminaryReport>> GetForReviewAsync(long stationId);
         Task<PagedResult<PreliminaryReport>> GetMinePagedAsync(long complainantId, int page, int pageSize, long? statusId = null, CancellationToken ct = default);

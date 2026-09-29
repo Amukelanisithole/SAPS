@@ -4,10 +4,8 @@
 
 namespace Database.Migrations
 {
-    /// <inheritdoc />
     public partial class AddAffidavitIdDocument : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -25,7 +23,6 @@ namespace Database.Migrations
                 nullable: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

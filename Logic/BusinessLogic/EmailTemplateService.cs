@@ -39,13 +39,6 @@ namespace Logic.BusinessLogic
             }
             catch (Exception ex)
             {
-                // Every caller (registration, password reset, case
-                // notifications) treats email as best-effort, not the
-                // source of truth — a transient SMTP failure (rate limits,
-                // a bad connection, etc.) must never fail the business
-                // action that triggered the email. Centralized here instead
-                // of repeated in every caller, since this is the one place
-                // all of them funnel through.
                 _logger.LogWarning(ex, "Failed to send template {TemplateId} email to {ToEmail}.", templateId, toEmail);
             }
         }

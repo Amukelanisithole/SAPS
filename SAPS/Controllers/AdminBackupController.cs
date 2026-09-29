@@ -7,10 +7,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // The api/Backup controller exists for external JWT-authenticated clients
-    // (same split as AccountController/api-Auth) — this is the missing
-    // website-side equivalent so a System Administrator using the actual site
-    // has some way to trigger FR-10's backup evidence, not just an API client.
     [Route("Admin/Backups")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
     public class AdminBackupController : Controller

@@ -51,6 +51,72 @@
     </div>
 </div>
 
+<div class="card saps-card mb-4">
+    <div class="saps-panel-header">
+        <span><i class="bi bi-person-workspace"></i> My Cases</span>
+        <a asp-controller="Dockets" asp-action="Assigned" class="small">Open My Cases</a>
+    </div>
+    <div class="row g-0 text-center border-bottom">
+        <div class="col-6 col-md-3 p-3 border-end">
+            <div class="h4 mb-0">@Model.MyActiveDocketCount</div>
+            <div class="small text-muted">Active dockets</div>
+        </div>
+        <div class="col-6 col-md-3 p-3 border-end">
+            <div class="h4 mb-0 @(Model.MyUpdatesDueCount > 0 ? "text-danger" : "")">@Model.MyUpdatesDueCount</div>
+            <div class="small text-muted">Updates due (@Model.OverdueThresholdDays+ days)</div>
+        </div>
+        <div class="col-6 col-md-3 p-3 border-end">
+            <div class="h4 mb-0 @(Model.MyEvidenceToReviewCount > 0 ? "text-warning-emphasis" : "")">@Model.MyEvidenceToReviewCount</div>
+            <div class="small text-muted">Complainant evidence to review</div>
+        </div>
+        <div class="col-6 col-md-3 p-3">
+            <div class="h4 mb-0">@Model.MyReportsInReviewCount</div>
+            <div class="small text-muted">Reports I'm reviewing</div>
+        </div>
+    </div>
+    @if (!Model.MyDockets.Any())
+    {
+        <div class="saps-empty-state py-3">
+            <i class="bi bi-folder2"></i>
+            No dockets are assigned to you.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Docket #</th>
+                        <th>Incident</th>
+                        <th>Status</th>
+                        <th>Last Diary Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.MyDockets)
+                    {
+                        var days = (int)(DateTime.UtcNow - item.LastActivity).TotalDays;
+                        var isOverdue = item.Docket.StatusId is (EDocketStatus.Open or EDocketStatus.UnderInvestigation) && days >= Model.OverdueThresholdDays;
+                        <tr class="cursor-pointer @(isOverdue ? "table-warning" : "")" onclick="location.href='@Url.Action("Details", "Dockets", new { id = item.Docket.Id })'">
+                            <td>@item.Docket.Id</td>
+                            <td>@(item.Docket.NavReport?.IncidentType ?? "-")</td>
+                            <td><span class="badge @EDocketStatus.GetBadgeClass(item.Docket.StatusId)">@EDocketStatus.GetName(item.Docket.StatusId)</span></td>
+                            <td>
+                                @(days == 0 ? "Today" : days == 1 ? "1 day ago" : $"{days} days ago")
+                                @if (isOverdue)
+                                {
+                                    <span class="badge text-bg-warning ms-1"><i class="bi bi-alarm"></i> Update due</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
 @if (Model.ActiveEmergencyAlertCount > 0)
 {
     <div class="card mb-4" style="border: 2px solid #dc3545;">

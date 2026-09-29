@@ -1,7 +1,5 @@
 namespace Logic.BusinessLogic
 {
-    // Straight-line (great-circle) distance between two coordinates — good enough
-    // for "nearest station" matching without needing a paid Google Distance Matrix call.
     public static class GeoDistanceHelper
     {
         private const double EarthRadiusKm = 6371.0;

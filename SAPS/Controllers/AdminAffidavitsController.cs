@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SAPS.Controllers
 {
-    // "Admin" prefix mirrors AdminUsers/AdminStations — a system-wide browse
-    // view so an administrator can find any affidavit without needing its
-    // direct URL. Individual rows link into the existing Affidavits/Details
-    // page, which already grants SystemAdministrator view access.
     [Route("Admin/Affidavits")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
     public class AdminAffidavitsController : Controller

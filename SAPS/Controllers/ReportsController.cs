@@ -14,9 +14,11 @@ namespace SAPS.Controllers
     {
         private readonly IPreliminaryReportLogic _preliminaryReportLogic;
         private readonly IDocketLogic _docketLogic;
+        private readonly IReferralLogic _referralLogic;
 
-        public ReportsController(IPreliminaryReportLogic preliminaryReportLogic, IDocketLogic docketLogic)
+        public ReportsController(IPreliminaryReportLogic preliminaryReportLogic, IDocketLogic docketLogic, IReferralLogic referralLogic)
         {
+            _referralLogic = referralLogic;
             _preliminaryReportLogic = preliminaryReportLogic;
             _docketLogic = docketLogic;
         }
@@ -82,17 +84,63 @@ namespace SAPS.Controllers
             }
 
             var isOwner = report.ComplainantId == User.GetUserId();
-            var isStaff = User.GetRoleName() is "SapsOfficer" or "StationCommander" or "SystemAdministrator";
-            if (!isOwner && !isStaff)
+            var isAdmin = User.GetRoleName() == "SystemAdministrator";
+            var myStationId = User.GetStationId();
+            var canSeeAsStaff = false;
+            if (User.GetRoleName() is ("SapsOfficer" or "StationCommander") && myStationId != null)
+            {
+                canSeeAsStaff = report.NearestStationId == null
+                    || report.NearestStationId == myStationId
+                    || report.NavDocket?.StationId == myStationId;
+                if (!canSeeAsStaff && report.NavDocket != null)
+                {
+                    var pendingReferral = await _referralLogic.GetPendingForDocketAsync(report.NavDocket.Id);
+                    canSeeAsStaff = pendingReferral?.ToStationId == myStationId;
+                }
+            }
+
+            if (!isOwner && !isAdmin && !canSeeAsStaff)
             {
                 return Forbid();
             }
 
+            var isOfficerForReport = User.GetRoleName() == "SapsOfficer"
+                && (report.NearestStationId == null || report.NearestStationId == User.GetStationId());
+            var isOpenForReview = report.StatusId is (EReportStatus.Submitted or EReportStatus.UnderReview);
+
             return View(new ReportDetailsViewModel
             {
                 Report = report,
-                CanConvert = User.GetRoleName() == "SapsOfficer" && report.StatusId != EReportStatus.Converted
+                CanConvert = isOfficerForReport && isOpenForReview,
+                CanStartReview = isOfficerForReport && report.StatusId == EReportStatus.Submitted,
+                CanReject = isOfficerForReport && isOpenForReview
             });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "SapsOfficer")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StartReview(long id)
+        {
+            var result = await _preliminaryReportLogic.StartReviewAsync(id, User.GetUserId());
+            TempData[result.ResultId == EResultValue.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "SapsOfficer")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(long id, ReportRejectDTO reject)
+        {
+            var result = await _preliminaryReportLogic.RejectAsync(id, User.GetUserId(), reject);
+            if (result.ResultId != EResultValue.Success)
+            {
+                TempData["ErrorMessage"] = result.Message;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            TempData["SuccessMessage"] = result.Message;
+            return RedirectToAction(nameof(ForReview));
         }
 
         [HttpPost]
@@ -100,8 +148,6 @@ namespace SAPS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Convert(long id, DocketConvertDTO convert)
         {
-            // The form posts fields prefixed "Convert." (it binds ReportDetailsViewModel.Convert),
-            // so this parameter must be named to match that prefix for model binding to populate it.
             convert.ReportId = id;
             var result = await _docketLogic.ConvertAsync(User.GetUserId(), convert, HttpContext.Connection.RemoteIpAddress?.ToString());
             if (result.ResultId != EResultValue.Success || result.Data == null)

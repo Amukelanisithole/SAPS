@@ -63,7 +63,7 @@
                             <label asp-for="Password" class="form-label small fw-semibold text-muted"></label>
                             <div class="saps-field-group">
                                 <i class="bi bi-lock"></i>
-                                <input asp-for="Password" type="password" autocomplete="new-password" placeholder="Temporary password" />
+                                <input asp-for="Password" type="password" autocomplete="new-password" placeholder="Temporary password" data-strength-meter />
                                 <button type="button" class="saps-toggle-password" data-target="Password" aria-label="Show password"><i class="bi bi-eye"></i></button>
                             </div>
                             <span asp-validation-for="Password" class="text-danger small"></span>

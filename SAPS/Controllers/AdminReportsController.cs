@@ -6,9 +6,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // "Admin" prefix (and a distinct route) keeps this separate from the
-    // existing ReportsController, which handles PreliminaryReport pages at
-    // /Reports/* — this is a different concept: system-wide data exports.
     [Route("Admin/Reports")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SystemAdministrator")]
     public class AdminReportsController : Controller

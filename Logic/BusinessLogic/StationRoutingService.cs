@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Logic.BusinessLogic
 {
-    // Extracted out of PreliminaryReportLogic so Affidavit (and any future
-    // station-routed feature) shares the exact same nearest-station
-    // resolution and fallback behavior instead of a second copy of it.
     public class StationRoutingService : IStationRoutingService
     {
         private static readonly double[] LookupRadiiKm = { 10, 25, 50 };
@@ -21,11 +18,6 @@ namespace Logic.BusinessLogic
             _policeStationLookupService = policeStationLookupService;
         }
 
-        // Resolves the real-world SAPS station nearest the complainant via OpenStreetMap
-        // (widening the search radius if nothing is tagged nearby yet), reusing a
-        // previously auto-created Station row for that same real station where one
-        // already exists rather than creating a duplicate. Falls back to whatever
-        // stations an admin has manually configured if the external lookup fails.
         public async Task<long?> FindOrCreateNearestStationIdAsync(double latitude, double longitude)
         {
             foreach (var radiusKm in LookupRadiiKm)
@@ -62,9 +54,6 @@ namespace Logic.BusinessLogic
             return await FindNearestManuallyConfiguredStationIdAsync(latitude, longitude);
         }
 
-        // Safety net for when the external lookup is unreachable or OpenStreetMap has
-        // no police stations tagged in the area — matches against whatever an admin
-        // has manually configured (e.g. for onboarding officers before any report exists).
         private async Task<long?> FindNearestManuallyConfiguredStationIdAsync(double latitude, double longitude)
         {
             var candidates = await _context.Stations

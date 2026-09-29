@@ -30,13 +30,6 @@ body {
   text-align: start;
 }
 
-/* ==========================================================================
-   SAPS theme — civic navy/blue with a gold accent, layered on top of
-   Bootstrap 5.3's CSS variables so every default component (.btn-primary,
-   .card, links, etc.) retints automatically without touching the vendored
-   bootstrap.min.css.
-   ========================================================================== */
-
 :root {
   --saps-navy-950: #071426;
   --saps-navy-900: #0b2545;
@@ -47,8 +40,6 @@ body {
   --saps-gold-600: #c08c2c;
   --saps-surface: #f5f7fa;
   --saps-body: #1f2937;
-  /* Theme-aware accent — light theme uses the deeper blue-600 for contrast on
-     white, dark theme (redefined below) uses the lighter blue-500 instead. */
   --saps-accent: var(--saps-blue-600);
 
   --bs-primary: var(--saps-blue-600);
@@ -61,6 +52,31 @@ body {
   --bs-body-color: var(--saps-body);
   --bs-warning: var(--saps-gold-500);
   --bs-warning-rgb: 217, 164, 65;
+
+  --glass-blur: 22px;
+  --glass-bg: rgba(255, 255, 255, .55);
+  --glass-bg-strong: rgba(255, 255, 255, .7);
+  --glass-border: rgba(255, 255, 255, .6);
+  --glass-shadow: 0 8px 32px rgba(15, 23, 42, .1);
+
+  --saps-ambient-bg:
+    radial-gradient(900px 650px at 6% 0%, rgba(217, 164, 65, .3), transparent 62%),
+    radial-gradient(1000px 750px at 100% 6%, rgba(47, 102, 179, .32), transparent 58%),
+    radial-gradient(850px 850px at 46% 105%, rgba(27, 75, 145, .26), transparent 62%),
+    radial-gradient(700px 600px at 80% 90%, rgba(0, 210, 255, .12), transparent 60%);
+}
+
+[data-bs-theme="dark"] {
+  --saps-ambient-bg:
+    radial-gradient(900px 650px at 6% 0%, rgba(217, 164, 65, .16), transparent 62%),
+    radial-gradient(1000px 750px at 100% 6%, rgba(47, 102, 179, .32), transparent 58%),
+    radial-gradient(850px 850px at 46% 105%, rgba(11, 37, 69, .65), transparent 62%),
+    radial-gradient(700px 600px at 80% 90%, rgba(0, 210, 255, .09), transparent 60%);
+}
+
+body {
+  background: var(--saps-ambient-bg), var(--bs-body-bg);
+  background-attachment: fixed;
 }
 
 body {
@@ -85,9 +101,11 @@ body {
   --bs-btn-hover-color: #1f2937;
 }
 
-/* Navbar */
 .saps-navbar {
-  background: linear-gradient(180deg, var(--saps-navy-900), var(--saps-navy-800));
+  background: linear-gradient(180deg, rgba(11, 37, 69, .92), rgba(18, 48, 97, .88));
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
 
 .saps-navbar-inner {
@@ -123,7 +141,6 @@ body {
   border-color: rgba(255, 255, 255, .35);
 }
 
-/* Hero */
 .saps-hero {
   background:
     radial-gradient(1200px 500px at 90% -10%, rgba(217, 164, 65, .12), transparent),
@@ -175,7 +192,6 @@ body {
   color: var(--saps-gold-500);
 }
 
-/* Hero product mockup — shows the system "in context" instead of an abstract graphic */
 .saps-mock-browser {
   max-width: 380px;
   background: #fff;
@@ -276,7 +292,6 @@ body {
   margin-bottom: 1.05rem;
 }
 
-/* Stat strip */
 .saps-stat-strip {
   background: #fff;
   border-bottom: 1px solid rgba(11, 37, 69, .08);
@@ -293,7 +308,6 @@ body {
   color: #6b7280;
 }
 
-/* Section eyebrow */
 .saps-eyebrow {
   color: var(--saps-blue-600);
   font-weight: 700;
@@ -302,7 +316,6 @@ body {
   font-size: .8rem;
 }
 
-/* Feature cards */
 .saps-feature-icon {
   width: 3rem;
   height: 3rem;
@@ -318,15 +331,18 @@ body {
 .saps-card {
   border: 1px solid rgba(11, 37, 69, .08);
   border-radius: 1rem;
-  transition: transform .15s ease, box-shadow .15s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .saps-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 .5rem 1.5rem rgba(11, 37, 69, .08);
+  transform: translateY(-3px);
+  box-shadow: 0 1rem 2.5rem rgba(11, 37, 69, .1), 0 0 0 1px rgba(217, 164, 65, .12), 0 0 32px rgba(47, 102, 179, .14);
 }
 
-/* Why-it-matters checklist */
+[data-bs-theme="dark"] .saps-card:hover {
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, .4), 0 0 0 1px rgba(217, 164, 65, .18), 0 0 40px rgba(47, 102, 179, .22);
+}
+
 .saps-check-item {
   display: flex;
   gap: .75rem;
@@ -340,7 +356,6 @@ body {
   margin-top: .15rem;
 }
 
-/* How it works — connected timeline */
 .saps-timeline {
   position: relative;
 }
@@ -362,9 +377,6 @@ body {
   }
 }
 
-/* National leadership section — img has an onerror fallback to the icon
-   behind it, so this looks intentional even before a real photo file
-   exists at the given path (see wwwroot/branding/). */
 .saps-leader-avatar {
   width: 120px;
   height: 120px;
@@ -425,9 +437,6 @@ body {
   box-shadow: 0 0 0 6px var(--bs-body-bg);
 }
 
-/* Dark-theme variants for the public landing page's own sections (the hero,
-   feature-card backgrounds, and CTA band already read fine unchanged in
-   both themes — only these need an explicit dark pass). */
 [data-bs-theme="dark"] .saps-stat-strip {
   background: rgba(255, 255, 255, .02);
   border-bottom-color: rgba(255, 255, 255, .08);
@@ -462,7 +471,6 @@ body {
   background: rgba(255, 255, 255, .12);
 }
 
-/* Final CTA band */
 .saps-cta-band {
   background: linear-gradient(135deg, var(--saps-navy-950), var(--saps-blue-600));
   color: #fff;
@@ -475,24 +483,26 @@ body {
 }
 
 .card {
-  border-radius: .75rem;
+  border-radius: 1rem;
+  --bs-card-bg: var(--glass-bg);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 40%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 footer.saps-footer {
-  background: var(--saps-navy-950);
+  background: rgba(7, 20, 38, .55);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border-top: 1px solid rgba(255, 255, 255, .08);
   color: rgba(255, 255, 255, .7);
 }
 
 footer.saps-footer a {
   color: rgba(255, 255, 255, .85);
 }
-
-/* ==========================================================================
-   Dashboard app shell — persistent sidebar for authenticated pages, separate
-   from the marketing site's top navbar (_Layout.cshtml still handles Home/
-   Login/Register). Built on Bootstrap's .offcanvas-lg: a normal static
-   sidebar at >=lg, a slide-out drawer below it — no custom JS needed.
-   ========================================================================== */
 
 .saps-app-body {
   margin-bottom: 0;
@@ -501,7 +511,9 @@ footer.saps-footer a {
 .saps-sidebar {
   width: 260px;
   flex-shrink: 0;
-  background: #060b16 !important;
+  background: rgba(6, 11, 22, .93) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
   border-right: 1px solid rgba(255, 255, 255, .08);
 }
 
@@ -513,10 +525,6 @@ footer.saps-footer a {
     overflow-y: auto;
   }
 
-  /* Collapsed rail — desktop only. The toggle lives on this element so it
-     stays reachable (and in the same anchored spot) in both states; on
-     mobile the sidebar is already the offcanvas drawer, so collapsing
-     doesn't apply and the toggle is hidden instead. */
   html.saps-sidebar-collapsed .saps-sidebar {
     width: 76px;
   }
@@ -681,14 +689,14 @@ footer.saps-footer a {
 .saps-main {
   min-height: 100vh;
   min-width: 0;
-  background: var(--bs-body-bg);
+  background: var(--saps-ambient-bg), var(--bs-body-bg);
+  background-attachment: fixed;
 }
 
-/* Topbar — transparent glass strip over the app background (retints with
-   the theme, unlike the permanently-dark sidebar). */
 .saps-topbar {
-  background: rgba(15, 23, 42, .015);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, .25);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
   min-height: 4rem;
   position: sticky;
   top: 0;
@@ -733,35 +741,106 @@ footer.saps-footer a {
   max-height: 380px;
   overflow-y: auto;
   padding-top: 0;
-  background: #0b1526;
-  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid rgba(15, 23, 42, .1);
+}
+
+.saps-notif-menu .dropdown-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: inherit;
+  color: #64748b;
 }
 
 .saps-notif-item {
   white-space: normal;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid rgba(15, 23, 42, .06);
   padding: .6rem 1rem;
-  color: #cbd5e1;
+  color: var(--saps-body);
+}
+
+.saps-notif-item:hover,
+.saps-notif-item:focus {
+  background: rgba(27, 75, 145, .06);
+  color: var(--saps-navy-900);
+}
+
+.saps-notif-item .text-muted {
+  color: #64748b !important;
 }
 
 .saps-notif-item.unread {
-  background: rgba(59, 130, 246, .08);
-  border-left: 3px solid var(--saps-blue-500, #3b82f6);
+  background: rgba(27, 75, 145, .07);
+  border-left: 3px solid var(--saps-blue-600);
+  font-weight: 500;
 }
 
-/* Dashboard stat widgets — dark glass card, colored left accent stripe, a
-   small icon badge (not a giant ghost icon), and a hairline "more info"
-   footer link. Value/label order is flipped visually via flex `order` so
-   the view markup (value first, label second) doesn't need to change. */
+[data-bs-theme="dark"] .saps-notif-menu {
+  background: rgba(11, 21, 38, .94);
+  border-color: rgba(255, 255, 255, .1);
+}
+
+[data-bs-theme="dark"] .saps-notif-menu .dropdown-header {
+  color: #93a0b4;
+}
+
+[data-bs-theme="dark"] .saps-notif-item {
+  border-bottom-color: rgba(255, 255, 255, .08);
+  color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .saps-notif-item:hover,
+[data-bs-theme="dark"] .saps-notif-item:focus {
+  background: rgba(255, 255, 255, .05);
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .saps-notif-item .text-muted {
+  color: #93a0b4 !important;
+}
+
+[data-bs-theme="dark"] .saps-notif-item.unread {
+  background: rgba(59, 130, 246, .1);
+  border-left-color: var(--saps-blue-500);
+}
+
+.table > tbody > tr.saps-notif-row-unread {
+  --saps-unread-tint: rgba(27, 75, 145, .09);
+  --saps-unread-accent: var(--saps-blue-600);
+}
+
+[data-bs-theme="dark"] .table > tbody > tr.saps-notif-row-unread {
+  --saps-unread-tint: rgba(59, 130, 246, .1);
+  --saps-unread-accent: var(--saps-blue-500);
+}
+
+.table > tbody > tr.saps-notif-row-unread > * {
+  --bs-table-bg-state: var(--saps-unread-tint);
+  font-weight: 500;
+}
+
+.table > tbody > tr.saps-notif-row-unread > :first-child {
+  box-shadow: inset 3px 0 0 var(--saps-unread-accent), inset 0 0 0 9999px var(--saps-unread-tint);
+}
+
+[data-bs-theme="dark"] .table > tbody > tr.saps-notif-row-unread > * {
+  color: #fff;
+}
+
 .saps-small-box {
   position: relative;
   overflow: hidden;
   border-radius: .75rem;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, .08);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--glass-border);
   border-left: 3px solid var(--accent, var(--saps-blue-500));
   color: var(--saps-navy-900);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, .06);
+  box-shadow: var(--glass-shadow);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -853,9 +932,6 @@ footer.saps-footer a {
   color: var(--saps-navy-900);
 }
 
-/* Colored top-border on panels — light by default; a dark-theme override for
-   the card's background/border lives further down, gated by [data-bs-theme]
-   so it applies wherever the toggle is on, public pages included. */
 .saps-card {
   border-top: 3px solid var(--saps-blue-600) !important;
 }
@@ -879,7 +955,6 @@ footer.saps-footer a {
   text-decoration: none;
 }
 
-/* Content header breadcrumb */
 .saps-content-header {
   display: flex;
   align-items: center;
@@ -919,16 +994,6 @@ footer.saps-footer a {
   margin-bottom: .5rem;
 }
 
-/* ==========================================================================
-   Dark theme — toggled site-wide via [data-bs-theme="dark"] on <html>
-   (see the theme-toggle script in site.js). Applies uniformly to both the
-   public marketing pages (_Layout.cshtml) and the authenticated app
-   (_DashboardLayout.cshtml) — the sidebar/topbar chrome stays permanently
-   dark regardless of this toggle (fixed brand chrome, not content).
-   Redefining Bootstrap's own --bs-* variables here means body background/
-   text, and anything else already built on them, retint for free.
-   ========================================================================== */
-
 [data-bs-theme="dark"] {
   --saps-accent: var(--saps-blue-500);
   --bs-body-bg: #060b16;
@@ -954,40 +1019,51 @@ footer.saps-footer a {
   color: #fff;
 }
 
-/* SweetAlert2 ships its own fixed light-theme CSS and isn't a Bootstrap
-   component, so it never picks up [data-bs-theme="dark"] on its own — left
-   alone, its popup/toast keeps swal2's default white background while the
-   h1-h6 rule above still turns its <h2> title white, making the title
-   unreadable (white text on white). These give it an explicit dark surface
-   to match the rest of the dark theme instead. */
-[data-bs-theme="dark"] .swal2-popup {
-  background: #0f1b30;
-  color: #e7ebf2;
+html[data-bs-theme="light"] {
+  --swal2-background: rgba(255, 255, 255, .85);
+  --swal2-color: var(--saps-body);
+  --swal2-border: 1px solid var(--glass-border);
+  --swal2-close-button-color: #64748b;
+  --swal2-footer-border-color: rgba(15, 23, 42, .1);
+  --swal2-input-background: #fff;
+  --swal2-input-border: 1px solid rgba(15, 23, 42, .15);
+  --swal2-confirm-button-background-color: var(--saps-blue-600);
+  --swal2-cancel-button-background-color: #6c757d;
+  --swal2-timer-progress-bar-background: rgba(27, 75, 145, .35);
+  --swal2-toast-box-shadow: 0 10px 30px rgba(15, 23, 42, .15);
 }
 
-[data-bs-theme="dark"] .swal2-title,
-[data-bs-theme="dark"] .swal2-html-container {
-  color: #e7ebf2;
+html[data-bs-theme="dark"] {
+  --swal2-background: rgba(15, 27, 48, .88);
+  --swal2-color: #e7ebf2;
+  --swal2-border: 1px solid rgba(255, 255, 255, .1);
+  --swal2-close-button-color: #93a0b4;
+  --swal2-footer-border-color: rgba(255, 255, 255, .1);
+  --swal2-footer-color: #93a0b4;
+  --swal2-input-background: rgba(255, 255, 255, .05);
+  --swal2-input-border: 1px solid rgba(255, 255, 255, .15);
+  --swal2-validation-message-background: rgba(255, 255, 255, .06);
+  --swal2-validation-message-color: #e7ebf2;
+  --swal2-confirm-button-background-color: var(--saps-blue-500);
+  --swal2-cancel-button-background-color: rgba(255, 255, 255, .12);
+  --swal2-timer-progress-bar-background: rgba(217, 164, 65, .55);
+  --swal2-toast-box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
 }
 
-[data-bs-theme="dark"] .swal2-close {
-  color: #93a0b4;
+.swal2-popup {
+  backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+}
+
+.swal2-title,
+.swal2-html-container {
+  color: var(--swal2-color);
 }
 
 [data-bs-theme="dark"] .swal2-close:hover {
   color: #fff;
 }
 
-[data-bs-theme="dark"] .swal2-toast {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
-}
-
-/* Select2 dark theme — like SweetAlert2 above, select2 ships its own fixed
-   light-theme CSS and isn't a Bootstrap component, so it needs the same kind
-   of explicit override. The dropdown panel is appended to <body> rather than
-   living inside .saps-field-group, but [data-bs-theme="dark"] is set on
-   <html> — an ancestor of the panel either way — so these still apply to it
-   live, including a panel that's already open when the theme is toggled. */
 [data-bs-theme="dark"] .select2-container--default .select2-selection--single {
   background: rgba(255, 255, 255, .03);
   border-color: rgba(255, 255, 255, .12);
@@ -1044,22 +1120,33 @@ footer.saps-footer a {
   color: #fff;
 }
 
-/* Cards */
 [data-bs-theme="dark"] .card {
-  --bs-card-bg: rgba(255, 255, 255, .03);
+  --bs-card-bg: rgba(255, 255, 255, .045);
   --bs-card-border-color: rgba(255, 255, 255, .1);
   --bs-card-color: #e7ebf2;
   --bs-card-cap-bg: rgba(255, 255, 255, .03);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .28);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 40%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04);
 }
 
-/* Tables */
 [data-bs-theme="dark"] .table {
   --bs-table-bg: transparent;
   --bs-table-color: #cbd5e1;
   --bs-table-border-color: rgba(255, 255, 255, .08);
   --bs-table-hover-bg: rgba(255, 255, 255, .04);
   --bs-table-hover-color: #fff;
+}
+
+[data-bs-theme="dark"] .table-warning {
+  --bs-table-bg: rgba(217, 164, 65, .12);
+  --bs-table-color: #f2d7a2;
+  --bs-table-border-color: rgba(217, 164, 65, .2);
+  --bs-table-hover-bg: rgba(217, 164, 65, .18);
+  --bs-table-hover-color: #fff;
+  --bs-table-striped-bg: rgba(217, 164, 65, .15);
+  --bs-table-active-bg: rgba(217, 164, 65, .2);
 }
 
 [data-bs-theme="dark"] .table thead th {
@@ -1072,7 +1159,6 @@ footer.saps-footer a {
   border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
 
-/* Badges -> translucent pills instead of solid fills */
 [data-bs-theme="dark"] .badge.text-bg-primary { background: rgba(47, 102, 179, .18) !important; color: #8ab4f0 !important; border: 1px solid rgba(47, 102, 179, .4); }
 [data-bs-theme="dark"] .badge.text-bg-success { background: rgba(16, 185, 129, .15) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, .35); }
 [data-bs-theme="dark"] .badge.text-bg-warning { background: rgba(217, 164, 65, .18) !important; color: #f2c572 !important; border: 1px solid rgba(217, 164, 65, .4); }
@@ -1081,7 +1167,6 @@ footer.saps-footer a {
 [data-bs-theme="dark"] .badge.text-bg-secondary { background: rgba(255, 255, 255, .08) !important; color: #cbd5e1 !important; border: 1px solid rgba(255, 255, 255, .15); }
 [data-bs-theme="dark"] .badge { font-weight: 600; }
 
-/* Forms */
 [data-bs-theme="dark"] .form-control,
 [data-bs-theme="dark"] .form-select {
   background: rgba(255, 255, 255, .03);
@@ -1106,12 +1191,12 @@ footer.saps-footer a {
 }
 
 [data-bs-theme="dark"] .saps-field-group {
-  background: rgba(255, 255, 255, .03);
+  background: rgba(255, 255, 255, .04);
   border-color: rgba(255, 255, 255, .12);
 }
 
 [data-bs-theme="dark"] .saps-field-group:focus-within {
-  background: rgba(255, 255, 255, .05);
+  background: rgba(255, 255, 255, .07);
   border-color: var(--saps-blue-500);
   box-shadow: 0 0 0 3px rgba(47, 102, 179, .2);
 }
@@ -1135,9 +1220,8 @@ footer.saps-footer a {
   color: var(--saps-blue-500);
 }
 
-/* Dashboard stat widgets + panel/content headers — dark glass in dark theme */
 [data-bs-theme="dark"] .saps-small-box {
-  background: rgba(255, 255, 255, .03);
+  background: rgba(255, 255, 255, .045);
   border-color: rgba(255, 255, 255, .1);
   color: #e7ebf2;
   box-shadow: 0 10px 30px rgba(0, 0, 0, .28);
@@ -1193,7 +1277,7 @@ footer.saps-footer a {
 }
 
 [data-bs-theme="dark"] .saps-topbar {
-  background: rgba(255, 255, 255, .02);
+  background: rgba(255, 255, 255, .04);
   border-bottom-color: rgba(255, 255, 255, .08) !important;
 }
 
@@ -1214,7 +1298,6 @@ footer.saps-footer a {
   color: #fff;
 }
 
-/* Buttons */
 [data-bs-theme="dark"] .btn-outline-secondary {
   --bs-btn-color: #cbd5e1;
   --bs-btn-border-color: rgba(255, 255, 255, .18);
@@ -1223,15 +1306,24 @@ footer.saps-footer a {
   --bs-btn-hover-color: #fff;
 }
 
-/* Dropdowns */
+.dropdown-menu {
+  --bs-dropdown-bg: rgba(255, 255, 255, .75);
+  --bs-dropdown-border-color: var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  box-shadow: var(--glass-shadow);
+}
+
 [data-bs-theme="dark"] .dropdown-menu {
-  --bs-dropdown-bg: #0b1526;
+  --bs-dropdown-bg: rgba(15, 23, 42, .75);
   --bs-dropdown-border-color: rgba(255, 255, 255, .1);
   --bs-dropdown-link-color: #cbd5e1;
   --bs-dropdown-link-hover-bg: rgba(255, 255, 255, .05);
   --bs-dropdown-link-hover-color: #fff;
   --bs-dropdown-header-color: #fff;
   --bs-dropdown-divider-bg: rgba(255, 255, 255, .1);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow: 0 20px 40px rgba(0, 0, 0, .4);
 }
 
@@ -1239,7 +1331,6 @@ footer.saps-footer a {
   color: #93a0b4;
 }
 
-/* Alerts */
 [data-bs-theme="dark"] .alert-success {
   background: rgba(16, 185, 129, .12);
   border-color: rgba(16, 185, 129, .3);
@@ -1255,14 +1346,6 @@ footer.saps-footer a {
 .cursor-pointer {
   cursor: pointer;
 }
-
-/* ==========================================================================
-   Motion — a small entrance-animation system: hero content fades/slides in
-   on load (staggered via --delay), the mockup card idles with a gentle
-   float, and .reveal elements fade up the first time they scroll into view
-   (toggled by IntersectionObserver in site.js). Everything here is skipped
-   entirely under prefers-reduced-motion.
-   ========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
   @keyframes saps-fade-up {
@@ -1365,22 +1448,17 @@ footer.saps-footer a {
   }
 }
 
-/* ==========================================================================
-   Icon-prefixed form fields — a Bootstrap translation of a grouped
-   icon+input pattern (borrowed from another project's user-creation form):
-   an icon sits inline with the control inside one bordered pill, and the
-   whole group highlights together on focus instead of just the input.
-   ========================================================================== */
-
 .saps-field-group {
   display: flex;
   align-items: center;
   gap: .75rem;
-  border: 1px solid rgba(11, 37, 69, .14);
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .7);
+  background: rgba(255, 255, 255, .5);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   padding: .6rem 1rem;
   border-radius: .6rem;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
 .saps-field-group:focus-within {
@@ -1399,12 +1477,6 @@ footer.saps-footer a {
   color: var(--saps-blue-600);
 }
 
-/* Every field's label is immediately followed by its .saps-field-group
-   wrapper (see the form partials) — asp-for emits data-val-required for any
-   property carrying [Required] (and for non-nullable value types), and a
-   handful of plain HTML fields use the native required attribute directly.
-   Matching either lets one rule keep every required field marked across the
-   whole system, including ones added later, with no per-view upkeep. */
 label.form-label:has(+ .saps-field-group [data-val-required])::after,
 label.form-label:has(+ .saps-field-group [required])::after {
   content: " *";
@@ -1452,6 +1524,10 @@ label.form-label:has(+ .saps-field-group [required])::after {
   appearance: none;
 }
 
+.saps-field-group:has(> .select2-container) {
+  min-width: 12rem;
+}
+
 .saps-field-group textarea {
   resize: vertical;
   min-height: 4.5rem;
@@ -1465,8 +1541,6 @@ label.form-label:has(+ .saps-field-group [required])::after {
   margin-top: .2rem;
 }
 
-/* Floats over whatever follows the field (validation span, next field) so it
-   doesn't push the layout around as results come and go. */
 .saps-address-suggestions {
   position: absolute;
   z-index: 20;
@@ -1480,12 +1554,6 @@ label.form-label:has(+ .saps-field-group [required])::after {
   box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
-/* Select2 — base look matches .form-select for any standalone dropdown (e.g.
-   a status picker in a table row), while the .saps-field-group override
-   right after strips that box back down to nothing so the select2 control
-   blends into the icon+border field styling the same way a plain <select>
-   already does there. Only light-theme colors here — see the dark-theme
-   section further down for the [data-bs-theme="dark"] counterparts. */
 .select2-container {
   width: 100% !important;
 }
@@ -1574,10 +1642,6 @@ label.form-label:has(+ .saps-field-group [required])::after {
   border-color: rgba(11, 37, 69, .08);
 }
 
-/* A light tint on hover/keyboard-active, same spirit as Google's own address
-   suggestions — text stays its normal dark/muted colors rather than
-   inverting to white, so the bold-street / muted-area contrast still reads
-   correctly in the highlighted state. */
 .saps-address-suggestions .list-group-item:hover,
 .saps-address-suggestions .list-group-item.active {
   background: rgba(27, 75, 145, .08);
@@ -1607,10 +1671,6 @@ label.form-label:has(+ .saps-field-group [required])::after {
   gap: .75rem;
 }
 
-/* Full-view overlay shown while a form submission or page navigation is in
-   flight (see site.js) — sits above everything else on the page (sidebar,
-   topbar, modals included) but is only ever toggled on right before a real
-   navigation, so it clears itself the moment the next page loads. */
 .saps-global-spinner {
   display: none;
   position: fixed;
@@ -1626,11 +1686,6 @@ label.form-label:has(+ .saps-field-group [required])::after {
   display: flex;
 }
 
-/* A police officer endlessly chasing a fleeing suspect across the overlay —
-   both characters run the same left-to-right lap on an infinite loop; the
-   officer's identical animation simply starts a beat later, which keeps it a
-   fixed step behind the suspect for the whole loop without needing two
-   separate keyframe paths. */
 .saps-global-spinner-chase {
   position: relative;
   width: 16rem;
@@ -1674,5 +1729,100 @@ label.form-label:has(+ .saps-field-group [required])::after {
     position: static;
     display: inline-block;
     margin: 0 .5rem;
+  }
+}
+
+.saps-password-strength {
+  margin-top: .4rem;
+}
+
+.saps-password-strength-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(15, 23, 42, .08);
+  overflow: hidden;
+}
+
+[data-bs-theme="dark"] .saps-password-strength-track {
+  background: rgba(255, 255, 255, .12);
+}
+
+.saps-password-strength-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  transition: width .25s ease, background-color .25s ease;
+}
+
+.saps-password-strength-label {
+  display: inline-block;
+  margin-top: .3rem;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.btn-primary,
+.btn-warning,
+.btn-danger {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-warning::before,
+.btn-danger::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -60%;
+  width: 40%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, .35), transparent);
+  transform: skewX(-20deg);
+  transition: left .6s ease;
+  pointer-events: none;
+}
+
+.btn-primary:hover::before,
+.btn-warning:hover::before,
+.btn-danger:hover::before {
+  left: 130%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary::before,
+  .btn-warning::before,
+  .btn-danger::before {
+    display: none;
+  }
+}
+
+.saps-btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .55);
+  transform: scale(0);
+  animation: saps-btn-ripple .6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes saps-btn-ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes saps-emergency-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, .55); }
+  70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
+.saps-pulse-danger {
+  animation: saps-emergency-pulse 2.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saps-pulse-danger {
+    animation: none;
   }
 }

@@ -1,8 +1,5 @@
 namespace Database.Entities
 {
-    // Same shape and reasoning as PasswordResetToken — a single-use, hashed,
-    // expiring token rather than a permanent "confirmed" flip triggered by a
-    // guessable link.
     public class EmailVerificationToken
     {
         public long Id { get; set; }

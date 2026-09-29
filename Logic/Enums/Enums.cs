@@ -41,7 +41,6 @@ namespace Logic.Enums
                 _ => "Unknown"
             };
 
-            // Bootstrap "text-bg-*" utility class for rendering this status as a badge.
             public static string GetBadgeClass(long statusId) => statusId switch
             {
                 Submitted => "text-bg-primary",
@@ -59,6 +58,7 @@ namespace Logic.Enums
             public const long Referred = 3;
             public const long Archived = 4;
             public const long Closed = 5;
+            public const long PendingClosure = 6;
 
             public static string GetName(long statusId) => statusId switch
             {
@@ -67,6 +67,7 @@ namespace Logic.Enums
                 Referred => nameof(Referred),
                 Archived => nameof(Archived),
                 Closed => nameof(Closed),
+                PendingClosure => nameof(PendingClosure),
                 _ => "Unknown"
             };
 
@@ -77,7 +78,128 @@ namespace Logic.Enums
                 Referred => "text-bg-info",
                 Archived => "text-bg-secondary",
                 Closed => "text-bg-success",
+                PendingClosure => "text-bg-dark",
                 _ => "text-bg-secondary"
+            };
+
+            public static bool IsFinal(long statusId) => statusId is Closed or Archived;
+
+            public static IReadOnlyList<long> GetManualTransitions(long fromStatusId, bool isCommander) => fromStatusId switch
+            {
+                Open => new[] { UnderInvestigation },
+                PendingClosure when isCommander => new[] { UnderInvestigation },
+                Closed when isCommander => new[] { UnderInvestigation, Archived },
+                _ => Array.Empty<long>()
+            };
+
+            public static bool RequiresReason(long fromStatusId) => fromStatusId is PendingClosure or Closed;
+        }
+
+        public static class EReferralStatus
+        {
+            public const long Pending = 1;
+            public const long Accepted = 2;
+            public const long Declined = 3;
+            public const long Cancelled = 4;
+
+            public static string GetName(long statusId) => statusId switch
+            {
+                Pending => nameof(Pending),
+                Accepted => nameof(Accepted),
+                Declined => nameof(Declined),
+                Cancelled => nameof(Cancelled),
+                _ => "Unknown"
+            };
+
+            public static string GetBadgeClass(long statusId) => statusId switch
+            {
+                Pending => "text-bg-warning",
+                Accepted => "text-bg-success",
+                Declined => "text-bg-danger",
+                _ => "text-bg-secondary"
+            };
+        }
+
+        public static class EEvidenceReviewStatus
+        {
+            public const long Accepted = 1;
+            public const long Pending = 2;
+            public const long Dismissed = 3;
+
+            public static string GetName(long statusId) => statusId switch
+            {
+                Accepted => nameof(Accepted),
+                Pending => "Pending Review",
+                Dismissed => nameof(Dismissed),
+                _ => "Unknown"
+            };
+
+            public static string GetBadgeClass(long statusId) => statusId switch
+            {
+                Accepted => "text-bg-success",
+                Pending => "text-bg-warning",
+                Dismissed => "text-bg-secondary",
+                _ => "text-bg-secondary"
+            };
+        }
+
+        public static class EDiaryEntryType
+        {
+            public const long SceneVisit = 1;
+            public const long StatementTaken = 2;
+            public const long EvidenceCollected = 3;
+            public const long SuspectIdentified = 4;
+            public const long Arrest = 5;
+            public const long ComplainantContacted = 6;
+            public const long CourtAppearance = 7;
+            public const long Other = 8;
+
+            public static readonly long[] All = { SceneVisit, StatementTaken, EvidenceCollected, SuspectIdentified, Arrest, ComplainantContacted, CourtAppearance, Other };
+
+            public static string GetName(long typeId) => typeId switch
+            {
+                SceneVisit => "Scene visited",
+                StatementTaken => "Statement taken",
+                EvidenceCollected => "Evidence collected",
+                SuspectIdentified => "Suspect identified",
+                Arrest => "Arrest made",
+                ComplainantContacted => "Complainant contacted",
+                CourtAppearance => "Court appearance",
+                Other => "Other action",
+                _ => "Unknown"
+            };
+
+            public static string GetIcon(long typeId) => typeId switch
+            {
+                SceneVisit => "bi-geo-alt",
+                StatementTaken => "bi-file-earmark-text",
+                EvidenceCollected => "bi-box-seam",
+                SuspectIdentified => "bi-person-bounding-box",
+                Arrest => "bi-person-lock",
+                ComplainantContacted => "bi-telephone",
+                CourtAppearance => "bi-bank",
+                _ => "bi-journal-text"
+            };
+        }
+
+        public static class EDocketClosureOutcome
+        {
+            public const long Solved = 1;
+            public const long Withdrawn = 2;
+            public const long Unfounded = 3;
+            public const long Undetected = 4;
+            public const long ReferredToCourt = 5;
+
+            public static readonly long[] All = { Solved, Withdrawn, Unfounded, Undetected, ReferredToCourt };
+
+            public static string GetName(long outcomeId) => outcomeId switch
+            {
+                Solved => "Solved — suspect identified/charged",
+                Withdrawn => "Withdrawn by complainant",
+                Unfounded => "Unfounded — no offence committed",
+                Undetected => "Undetected — no further leads",
+                ReferredToCourt => "Referred to court (NPA)",
+                _ => "Unknown"
             };
         }
 
@@ -147,9 +269,6 @@ namespace Logic.Enums
             };
         }
 
-        // Keys for the admin's system-wide report exports (Logic/BusinessLogic/AdminReportLogic.cs).
-        // String-keyed rather than numeric since these identify a query/export
-        // kind, not a persisted status column.
         public static class EReportExportType
         {
             public const string Users = "Users";
@@ -164,10 +283,6 @@ namespace Logic.Enums
             public const string Backups = "Backups";
         }
 
-        // Ids of the seeded rows in the EmailTemplates table (see
-        // Database/SQL/MainScript/MainScript.sql) — kept as named constants,
-        // same convention as every other *Status class, so callers never
-        // hardcode a raw template id.
         public static class EEmailTemplates
         {
             public const long Welcome = 1;

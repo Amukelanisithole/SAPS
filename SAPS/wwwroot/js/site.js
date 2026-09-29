@@ -1,12 +1,3 @@
-// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
-
-// Fades in any ".reveal" element the first time it scrolls into view. Skipped
-// entirely when the browser doesn't support IntersectionObserver or the user
-// has asked for reduced motion — elements are visible by default either way,
-// this only adds the entrance animation on top.
 (function () {
     if (!('IntersectionObserver' in window)) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -25,12 +16,6 @@
     });
 })();
 
-// Light/dark theme toggle. The initial attribute is set synchronously by an
-// inline script in <head> (before this file loads) to avoid a flash of the
-// wrong theme — this just wires up the toggle button(s) and keeps every
-// button's icon/label in sync, since a page can have one in both the public
-// navbar and the app topbar layouts (never both at once, but the code
-// doesn't assume which).
 (function () {
     function currentTheme() {
         return document.documentElement.getAttribute('data-bs-theme') === 'light' ? 'light' : 'dark';
@@ -44,7 +29,7 @@
 
     function setTheme(theme) {
         document.documentElement.setAttribute('data-bs-theme', theme);
-        try { localStorage.setItem('saps-theme', theme); } catch (e) { /* private browsing, etc. */ }
+        try { localStorage.setItem('saps-theme', theme); } catch (e) { }
         applyIcon(theme);
     }
 
@@ -59,10 +44,6 @@
     });
 })();
 
-// Fires a SweetAlert2 toast for the TempData success/error message the
-// current page was rendered with — set as window.sapsFlash by a small inline
-// script in _Layout/_DashboardLayout so every controller's TempData response
-// gets the same swal treatment without each view wiring it up itself.
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
         if (typeof Swal === 'undefined' || !window.sapsFlash) return;
@@ -84,16 +65,11 @@
     });
 })();
 
-// Swal-backed replacement for native confirm() on destructive form
-// submissions. Any <form data-confirm="Question?"> is intercepted on submit
-// and only actually submitted once the user accepts the SweetAlert2 prompt —
-// add data-confirm-text for the body copy and data-confirm-button for the
-// confirm button's label, both optional.
 (function () {
     document.addEventListener('submit', function (event) {
         var form = event.target.closest('form[data-confirm]');
         if (!form || form.dataset.confirmed === 'true') return;
-        if (typeof Swal === 'undefined') return; // fall back to a plain submit if swal failed to load
+        if (typeof Swal === 'undefined') return;
 
         event.preventDefault();
         Swal.fire({
@@ -108,19 +84,12 @@
         }).then(function (result) {
             if (result.isConfirmed) {
                 form.dataset.confirmed = 'true';
-                // requestSubmit() (rather than submit()) still fires a real
-                // submit event, so the global spinner below still picks this
-                // up even though it's a programmatic, not user, submission.
                 form.requestSubmit();
             }
         });
     });
 })();
 
-// Show/hide toggle for password fields. Delegated to the document (rather
-// than bound per-button) so it works on every page — including ones with no
-// other page-specific script block — without each view needing its own
-// wiring code.
 (function () {
     document.addEventListener('click', function (event) {
         var button = event.target.closest('.saps-toggle-password');
@@ -140,13 +109,6 @@
     });
 })();
 
-// Strips any non-digit characters as the user types into a field marked
-// data-digits-only, so ID number / phone number inputs can't be typed (or
-// pasted) past their required digit count in the first place — the server
-// side IdNumberAttribute/PhoneNumberDigitsAttribute stay the source of truth,
-// this is just the browser-side complement so a mistyped extra digit never
-// gets that far. Delegated to the document like the other page-wide widgets
-// above, so it works on any input with the attribute without per-view wiring.
 (function () {
     document.addEventListener('input', function (event) {
         var input = event.target;
@@ -163,13 +125,6 @@
     });
 })();
 
-// Select2 for every single-select dropdown in the dashboard app (jQuery/
-// select2 are only loaded on _DashboardLayout, so this is a no-op — and thus
-// harmless — on the public site). Opt out per-select with data-no-select2.
-// Select2 always renders its dropdown panel into <body>, outside whatever
-// container the original <select> lived in, but its theming still works
-// because [data-bs-theme] is set on <html>, an ancestor of that panel either
-// way — see the .select2-* rules in site.css for both themes.
 (function () {
     if (typeof $ === 'undefined' || !$.fn.select2) return;
 
@@ -180,10 +135,98 @@
     });
 })();
 
-// Dashboard sidebar collapse toggle (desktop only — the initial state is set
-// synchronously by an inline script in _DashboardLayout's <head> to avoid a
-// flash of the wrong width; this just wires up the button and keeps its
-// tooltip/aria-label in sync).
+(function () {
+    var LEVELS = [
+        { label: '', color: 'transparent', width: 0 },
+        { label: 'Very weak', color: '#dc3545', width: 20 },
+        { label: 'Weak', color: '#f0883e', width: 40 },
+        { label: 'Fair', color: '#d9a441', width: 60 },
+        { label: 'Good', color: '#2f66b3', width: 80 },
+        { label: 'Strong', color: '#16a34a', width: 100 }
+    ];
+
+    function scorePassword(value) {
+        if (!value) return 0;
+        var score = 0;
+        if (value.length >= 8) score++;
+        if (/[A-Z]/.test(value)) score++;
+        if (/[a-z]/.test(value)) score++;
+        if (/[0-9]/.test(value)) score++;
+        if (/[^a-zA-Z0-9]/.test(value)) score++;
+        return score;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('input[data-strength-meter]').forEach(function (input) {
+            var group = input.closest('.saps-field-group');
+            if (!group) return;
+
+            var wrap = document.createElement('div');
+            wrap.className = 'saps-password-strength';
+            wrap.innerHTML = '<div class="saps-password-strength-track"><div class="saps-password-strength-fill"></div></div>' +
+                '<span class="saps-password-strength-label"></span>';
+            group.insertAdjacentElement('afterend', wrap);
+
+            var fill = wrap.querySelector('.saps-password-strength-fill');
+            var label = wrap.querySelector('.saps-password-strength-label');
+
+            input.addEventListener('input', function () {
+                var level = LEVELS[scorePassword(input.value)];
+                fill.style.width = level.width + '%';
+                fill.style.backgroundColor = level.color;
+                label.textContent = input.value ? level.label : '';
+                label.style.color = level.color === 'transparent' ? '' : level.color;
+            });
+        });
+    });
+})();
+
+(function () {
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.saps-small-box-value').forEach(function (el) {
+            var target = parseInt(el.textContent.trim(), 10);
+            if (isNaN(target)) return;
+
+            if (reduceMotion) {
+                el.textContent = target;
+                return;
+            }
+
+            var duration = 800;
+            var start = null;
+            el.textContent = '0';
+
+            function step(timestamp) {
+                if (start === null) start = timestamp;
+                var progress = Math.min((timestamp - start) / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(eased * target);
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+    });
+})();
+
+(function () {
+    document.addEventListener('click', function (event) {
+        var btn = event.target.closest('.btn-primary, .btn-warning, .btn-danger');
+        if (!btn) return;
+
+        var rect = btn.getBoundingClientRect();
+        var size = Math.max(rect.width, rect.height);
+        var ripple = document.createElement('span');
+        ripple.className = 'saps-btn-ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+        btn.appendChild(ripple);
+        ripple.addEventListener('animationend', function () { ripple.remove(); });
+    });
+})();
+
 (function () {
     function isCollapsed() {
         return document.documentElement.classList.contains('saps-sidebar-collapsed');
@@ -199,7 +242,7 @@
 
     function setCollapsed(collapsed) {
         document.documentElement.classList.toggle('saps-sidebar-collapsed', collapsed);
-        try { localStorage.setItem('saps-sidebar-collapsed', collapsed ? 'true' : 'false'); } catch (e) { /* private browsing, etc. */ }
+        try { localStorage.setItem('saps-sidebar-collapsed', collapsed ? 'true' : 'false'); } catch (e) { }
         applyLabel(collapsed);
     }
 
@@ -214,12 +257,6 @@
     });
 })();
 
-// Full-view "Processing…" overlay for any real form submission or page
-// navigation, so a multi-second round trip (an affidavit's photo/PDF
-// upload, geocoding lookups, email sends, etc.) never looks like the page
-// just froze. Delegated at the document level so it covers every page
-// without each view wiring it up, and opt-out via a data-no-spinner
-// attribute on a specific form/link for the rare case that needs it.
 (function () {
     var HIDE_FAILSAFE_MS = 20000;
     var failsafeTimer = null;
@@ -233,10 +270,6 @@
         if (!el) return;
         el.classList.add('show');
         el.setAttribute('aria-hidden', 'false');
-        // Don't leave a visitor staring at a blocked page forever if
-        // something this logic treated as a real navigation never actually
-        // navigates away (a popup blocked by the browser, a link to a
-        // fragment this couldn't recognize, etc.).
         clearTimeout(failsafeTimer);
         failsafeTimer = setTimeout(hideSpinner, HIDE_FAILSAFE_MS);
     }
@@ -250,10 +283,6 @@
         clearTimeout(failsafeTimer);
     }
 
-    // Forms: jQuery's unobtrusive validation runs its own submit handler on
-    // this same event and calls preventDefault() when the form is invalid —
-    // deferring the check to a fresh task lets that handler run first, so
-    // defaultPrevented actually reflects whether the submission proceeded.
     document.addEventListener('submit', function (event) {
         var form = event.target;
         if (!(form instanceof HTMLFormElement) || form.hasAttribute('data-no-spinner')) return;
@@ -263,10 +292,6 @@
         }, 0);
     });
 
-    // Links: only ones that actually cause this page to navigate away —
-    // excludes new-tab/download links, in-page anchors, tel:/mailto:, and
-    // Bootstrap's own dropdown/modal/collapse/offcanvas triggers (which use
-    // <a> but never navigate anywhere).
     document.addEventListener('click', function (event) {
         if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
 
@@ -282,9 +307,6 @@
         showSpinner();
     });
 
-    // A page restored from the back/forward cache never re-fires
-    // DOMContentLoaded, so a spinner left showing right before the visitor
-    // navigated away would otherwise still be showing when they come back.
     window.addEventListener('pageshow', function (event) {
         if (event.persisted) hideSpinner();
     });

@@ -12,9 +12,7 @@ namespace SAPS.Controllers
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     public class AffidavitsController : Controller
     {
-        // 8 MB — comfortably covers a webcam/phone-camera JPEG capture.
         private const long MaxVerificationPhotoBytes = 8 * 1024 * 1024;
-        // 8 MB also covers a phone photo or a single-page scanned PDF of an ID document.
         private const long MaxIdDocumentBytes = 8 * 1024 * 1024;
         private static readonly string[] AllowedIdDocumentContentTypes = { "image/jpeg", "image/png", "application/pdf" };
 

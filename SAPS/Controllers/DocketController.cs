@@ -21,7 +21,6 @@ namespace SAPS.Controllers
             _docketLogic = docketLogic;
         }
 
-        // FR-03: an officer reviews a preliminary report and opens an official docket.
         [HttpPost("Convert")]
         [Authorize(Roles = "SapsOfficer")]
         public async Task<IActionResult> Convert([FromBody] DocketConvertDTO dto)
@@ -35,7 +34,6 @@ namespace SAPS.Controllers
             return result.ResultId == EResultValue.Success ? Ok(result) : BadRequest(result);
         }
 
-        // FR-04: every open/view/update is logged against the accessing user automatically.
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(long id)
         {
@@ -56,7 +54,6 @@ namespace SAPS.Controllers
             return Ok(new ResultModel { ResultId = EResultValue.Success, Message = "Successful", Data = JsonSerializer.Serialize(docket, ApiJsonOptions.SafeSerialize) });
         }
 
-        // FR-05: a complainant tracks the permitted status of their docket(s).
         [HttpGet("Mine")]
         [Authorize(Roles = "Complainant")]
         public async Task<IActionResult> GetMine()
@@ -65,7 +62,6 @@ namespace SAPS.Controllers
             return Ok(new ResultModel { ResultId = EResultValue.Success, Message = "Successful", Data = JsonSerializer.Serialize(dockets, ApiJsonOptions.SafeSerialize) });
         }
 
-        // Officer/commander worklist: dockets currently held at their own station.
         [HttpGet("Station")]
         [Authorize(Roles = "SapsOfficer,StationCommander")]
         public async Task<IActionResult> GetForMyStation()

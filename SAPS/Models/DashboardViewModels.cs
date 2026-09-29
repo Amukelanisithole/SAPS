@@ -15,6 +15,12 @@ namespace SAPS.Models
 
     public class OfficerDashboardViewModel
     {
+        public int MyActiveDocketCount { get; set; }
+        public int MyUpdatesDueCount { get; set; }
+        public int MyReportsInReviewCount { get; set; }
+        public int MyEvidenceToReviewCount { get; set; }
+        public int OverdueThresholdDays { get; set; }
+        public IEnumerable<Logic.Model.AssignedDocketItem> MyDockets { get; set; } = Enumerable.Empty<Logic.Model.AssignedDocketItem>();
         public int ReportsAwaitingReviewCount { get; set; }
         public int DocketsAtMyStationCount { get; set; }
         public int AffidavitsAwaitingReviewCount { get; set; }
@@ -27,6 +33,9 @@ namespace SAPS.Models
 
     public class CommanderDashboardViewModel
     {
+        public Logic.Model.StationWorkQueue WorkQueue { get; set; } = new();
+        public IEnumerable<Referral> IncomingReferrals { get; set; } = Enumerable.Empty<Referral>();
+        public int OverdueThresholdDays { get; set; }
         public int EscalationCount { get; set; }
         public int DocketsAtMyStationCount { get; set; }
         public int AffidavitsAwaitingReviewCount { get; set; }

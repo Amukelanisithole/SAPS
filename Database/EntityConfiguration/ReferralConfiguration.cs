@@ -14,6 +14,12 @@ namespace Database.EntityConfiguration
 
             modelbuilder.Property(r => r.ReferralDate).IsRequired().HasColumnType("datetime2(0)");
             modelbuilder.Property(r => r.Reason).IsRequired();
+            modelbuilder.Property(r => r.StatusId).IsRequired();
+            modelbuilder.Property(r => r.PreviousDocketStatusId).IsRequired(false);
+            modelbuilder.Property(r => r.RespondedDate).IsRequired(false).HasColumnType("datetime2(0)");
+            modelbuilder.Property(r => r.ResponseNote).HasMaxLength(1000).IsRequired(false);
+
+            modelbuilder.HasIndex(r => new { r.ToStationId, r.StatusId });
 
             modelbuilder
                 .HasOne(r => r.NavDocket)
@@ -37,6 +43,12 @@ namespace Database.EntityConfiguration
                 .HasOne(r => r.NavReferredByOfficer)
                 .WithMany(u => u.NavReferralsMade)
                 .HasForeignKey(r => r.ReferredByOfficerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelbuilder
+                .HasOne(r => r.NavRespondedBy)
+                .WithMany()
+                .HasForeignKey(r => r.RespondedByUserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

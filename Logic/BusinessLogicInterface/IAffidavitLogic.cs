@@ -20,11 +20,6 @@ namespace Logic.BusinessLogicInterface
         Task<(byte[] Bytes, string ContentType)?> GetIdDocumentAsync(long affidavitId);
         Task<byte[]?> GetStampedPdfAsync(long affidavitId);
 
-        // Records an access event (view, PDF download) against an affidavit —
-        // separate from the state-changing actions above, which log
-        // themselves, so a controller can mark exactly which reads count as a
-        // meaningful "view" without every sub-resource fetch (photo, ID scan)
-        // also generating its own row.
         Task LogAccessAsync(long affidavitId, long userId, string actionType, string? ipAddress = null);
     }
 }

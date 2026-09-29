@@ -2,14 +2,8 @@ using Database.Entities;
 
 namespace Database.Seed
 {
-    // Mirrors the EmailTemplates rows inserted by Database/SQL/MainScript/MainScript.sql
-    // (same ids, same content) — kept as C# here too so Program.cs can bring an
-    // already-provisioned database in sync without that script being re-run by hand.
-    // Ids 1/2/3 correspond to Logic.Enums.Enums.EEmailTemplates.
     public static class EmailTemplateSeedData
     {
-        // Simple stroke-based icons (viewBox 0 0 56 56), same drawing style for
-        // all three so the emails read as one family.
         private const string EnvelopeCheckIcon = """
             <rect x="6" y="12" width="44" height="32" rx="5"></rect>
             <path d="M6 17l22 14L50 17"></path>
@@ -28,10 +22,6 @@ namespace Database.Seed
             <path d="M20 38h16"></path>
             """;
 
-        // Table-based layout (the robust choice for email clients), a
-        // gradient icon badge, a large rounded CTA, a plain-text fallback
-        // link, and a support contact line — one shared shell so all three
-        // emails read as one family, parameterized per-template below.
         private static string BuildEmail(string iconSvg, string title, string bodyHtml) => $$"""
             <!DOCTYPE html>
             <html lang="en" xmlns="http://www.w3.org/1999/xhtml">

@@ -2,35 +2,370 @@
 @{
     ViewData["Title"] = "Docket Details";
     var docket = Model.Docket;
+    var report = docket.NavReport;
+    var isFinal = EDocketStatus.IsFinal(docket.StatusId);
+    var evidenceList = Model.Evidence.ToList();
+    var diaryList = Model.Diary.ToList();
+    var evidenceNumbers = evidenceList
+        .Where(e => e.ReviewStatusId == EEvidenceReviewStatus.Accepted)
+        .Select((e, i) => (e.Id, Number: i + 1))
+        .ToDictionary(x => x.Id, x => x.Number);
+    var mainColClass = Model.IsStationStaff ? "col-lg-8" : "col-xl-8";
+
+    string StatusLabel(long statusId) =>
+        System.Text.RegularExpressions.Regex.Replace(EDocketStatus.GetName(statusId), "(?<!^)([A-Z])", " $1");
+
+    string FileSize(long bytes) => bytes >= 1024 * 1024 ? $"{bytes / (1024.0 * 1024):0.0} MB" : $"{Math.Max(1, bytes / 1024)} KB";
 }
 
-<div class="saps-content-header">
-    <h1 class="h3 mb-0">Docket #@docket.Id</h1>
-    <div class="saps-breadcrumb">Home / Docket #@docket.Id</div>
+<div class="saps-content-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+        <h1 class="h3 mb-0">Docket #@docket.Id</h1>
+        <div class="saps-breadcrumb">Home / Docket #@docket.Id</div>
+    </div>
+    @if (Model.CanDownload)
+    {
+        <a asp-controller="Dockets" asp-action="DownloadPdf" asp-route-id="@docket.Id" class="btn btn-primary">
+            <i class="bi bi-file-earmark-arrow-down"></i> Download Docket (PDF)
+        </a>
+    }
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-xl-8">
+<div class="row g-4 @(Model.IsStationStaff ? "" : "justify-content-center")">
+    <div class="@mainColClass">
         <div class="card saps-card">
             <div class="saps-panel-header">
                 <span><i class="bi bi-folder2-open"></i> Docket Details</span>
-                <span class="badge @EDocketStatus.GetBadgeClass(docket.StatusId)">@EDocketStatus.GetName(docket.StatusId)</span>
+                <span class="badge @EDocketStatus.GetBadgeClass(docket.StatusId)">@StatusLabel(docket.StatusId)</span>
             </div>
             <dl class="row p-4 mb-0">
-                <dt class="col-sm-3 text-muted">CAS Number</dt>
-                <dd class="col-sm-9">@(docket.CasNumber ?? "Not yet assigned")</dd>
+                <dt class="col-sm-4 text-muted">CAS Number</dt>
+                <dd class="col-sm-8">@(docket.CasNumber ?? "Not yet assigned")</dd>
 
-                <dt class="col-sm-3 text-muted">Opened</dt>
-                <dd class="col-sm-9">@docket.OpenedDate.ToLocalTime()</dd>
+                <dt class="col-sm-4 text-muted">Station</dt>
+                <dd class="col-sm-8">@(docket.NavStation?.StationName ?? "-")</dd>
 
-                <dt class="col-sm-3 text-muted">Last Updated</dt>
-                <dd class="col-sm-9">@docket.LastUpdated.ToLocalTime()</dd>
+                <dt class="col-sm-4 text-muted">Investigating Officer</dt>
+                <dd class="col-sm-8">@(docket.NavInvestigatingOfficer?.FullName ?? "Not yet assigned")</dd>
+
+                <dt class="col-sm-4 text-muted">Opened By</dt>
+                <dd class="col-sm-8">@(docket.NavReviewingOfficer?.FullName ?? "-")</dd>
+
+                <dt class="col-sm-4 text-muted">Opened</dt>
+                <dd class="col-sm-8">@docket.OpenedDate.ToLocalTime()</dd>
+
+                <dt class="col-sm-4 text-muted">Last Updated</dt>
+                <dd class="col-sm-8">@docket.LastUpdated.ToLocalTime()</dd>
+
+                @if (report != null)
+                {
+                    <dt class="col-sm-4 text-muted">Original Report</dt>
+                    <dd class="col-sm-8">
+                        <a asp-controller="Reports" asp-action="Details" asp-route-id="@report.Id">@report.ReferenceNumber</a>
+                        <div class="small text-muted">@report.IncidentType · @report.IncidentDate.ToLocalTime().ToString("dd MMM yyyy") · @report.IncidentLocation</div>
+                    </dd>
+                }
             </dl>
         </div>
+
+        @if (docket.ClosureOutcomeId != null)
+        {
+            var isPending = docket.StatusId == EDocketStatus.PendingClosure;
+            <div class="card saps-card mt-4 @(isPending ? "border-dark" : "border-success")">
+                <div class="saps-panel-header">
+                    <span><i class="bi @(isPending ? "bi-hourglass-split" : "bi-check2-circle")"></i> @(isPending ? "Closure Awaiting Commander Approval" : "Case Closure")</span>
+                </div>
+                <dl class="row p-4 mb-0">
+                    <dt class="col-sm-4 text-muted">Outcome</dt>
+                    <dd class="col-sm-8">@EDocketClosureOutcome.GetName(docket.ClosureOutcomeId.Value)</dd>
+
+                    @if (Model.IsStationStaff)
+                    {
+                        <dt class="col-sm-4 text-muted">Closure Notes</dt>
+                        <dd class="col-sm-8" style="white-space: pre-wrap;">@docket.ClosureNotes</dd>
+                    }
+
+                    @if (docket.ClosedDate != null)
+                    {
+                        <dt class="col-sm-4 text-muted">Closed</dt>
+                        <dd class="col-sm-8">@docket.ClosedDate.Value.ToLocalTime() @(docket.NavClosedBy != null ? $"by {docket.NavClosedBy.FullName}" : "")</dd>
+                    }
+                </dl>
+
+                @if (Model.CanApproveClosure)
+                {
+                    <div class="saps-form-card-footer flex-column align-items-stretch gap-3">
+                        <form asp-controller="Dockets" asp-action="ApproveClosure" asp-route-id="@docket.Id" method="post">
+                            <button type="submit" class="btn btn-success w-100"><i class="bi bi-check2-circle"></i> Approve Closure</button>
+                        </form>
+                        <form asp-controller="Dockets" asp-action="UpdateStatus" asp-route-id="@docket.Id" method="post" class="d-flex flex-column gap-2">
+                            <input type="hidden" name="StatusUpdate.NewStatusId" value="@EDocketStatus.UnderInvestigation" />
+                            <div class="saps-field-group">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <textarea name="StatusUpdate.Reason" rows="2" maxlength="1000" required placeholder="What still needs to be done before this can close?" aria-label="Reason for sending back"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-outline-secondary align-self-end"><i class="bi bi-arrow-counterclockwise"></i> Send Back for Investigation</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.DaysSinceActivity != null && Model.DaysSinceActivity >= Model.OverdueThresholdDays)
+        {
+            <div class="alert alert-warning mt-4 mb-0">
+                <i class="bi bi-alarm"></i> No investigation diary entry for <strong>@Model.DaysSinceActivity days</strong>.
+                Record what has been done and share an update with the complainant.
+            </div>
+        }
+
+        @if (Model.PendingReferral != null && (Model.IsStationStaff || Model.IsReceivingStaff))
+        {
+            var pending = Model.PendingReferral;
+            <div class="card saps-card mt-4 border-info">
+                <div class="saps-panel-header">
+                    <span><i class="bi bi-signpost-split"></i> Referral Awaiting Acceptance</span>
+                    <span class="badge text-bg-warning">Pending</span>
+                </div>
+                <div class="p-4">
+                    <p class="mb-2">
+                        <strong>@(pending.NavFromStation?.StationName)</strong> <i class="bi bi-arrow-right"></i> <strong>@(pending.NavToStation?.StationName)</strong>
+                        <span class="text-muted small">· requested @pending.ReferralDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span>
+                    </p>
+                    <p class="mb-0" style="white-space: pre-wrap;">@pending.Reason</p>
+                    @if (Model.IsReceivingStaff && !Model.CanRespondToReferral)
+                    {
+                        <p class="small text-muted mt-2 mb-0">Your station commander decides whether to accept this docket.</p>
+                    }
+                    @if (Model.IsStationStaff)
+                    {
+                        <p class="small text-muted mt-2 mb-0">The docket stays with your station until @(pending.NavToStation?.StationName) accepts it.</p>
+                    }
+                </div>
+                @if (Model.CanRespondToReferral)
+                {
+                    <div class="saps-form-card-footer flex-column align-items-stretch gap-3">
+                        <form asp-controller="Dockets" asp-action="AcceptReferral" asp-route-id="@docket.Id" method="post">
+                            <input type="hidden" name="referralId" value="@pending.Id" />
+                            <button type="submit" class="btn btn-success w-100"><i class="bi bi-box-arrow-in-down"></i> Accept Docket Into My Station</button>
+                        </form>
+                        <form asp-controller="Dockets" asp-action="DeclineReferral" asp-route-id="@docket.Id" method="post" class="d-flex flex-column gap-2">
+                            <input type="hidden" name="referralId" value="@pending.Id" />
+                            <div class="saps-field-group">
+                                <i class="bi bi-chat-square-text"></i>
+                                <textarea name="reason" rows="2" maxlength="1000" required placeholder="Why can't your station take this docket?" aria-label="Reason for declining"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-outline-danger align-self-end"><i class="bi bi-x-circle"></i> Decline Referral</button>
+                        </form>
+                    </div>
+                }
+                else if (Model.CanCancelReferral)
+                {
+                    <form asp-controller="Dockets" asp-action="CancelReferral" asp-route-id="@docket.Id" method="post" class="saps-form-card-footer">
+                        <input type="hidden" name="referralId" value="@pending.Id" />
+                        <button type="submit" class="btn btn-outline-secondary" onclick="return confirm('Cancel this referral?');"><i class="bi bi-arrow-counterclockwise"></i> Cancel Referral</button>
+                    </form>
+                }
+            </div>
+        }
 
         @if (Model.CanEscalate)
         {
             <p class="mt-4"><a asp-controller="Escalations" asp-action="Create" asp-route-docketId="@docket.Id" class="btn btn-warning"><i class="bi bi-exclamation-octagon-fill"></i> Escalate This Case</a></p>
+        }
+
+        @if (Model.IsStationStaff || Model.IsReceivingStaff || diaryList.Any())
+        {
+            var isStaffView = Model.IsStationStaff || Model.IsReceivingStaff;
+            <div class="card saps-card mt-4" id="diary">
+                <div class="saps-panel-header">
+                    <span><i class="bi bi-journal-text"></i> @(isStaffView ? "Investigation Diary" : "Progress Updates")</span>
+                    <span class="badge text-bg-secondary">@diaryList.Count</span>
+                </div>
+                @if (Model.CanAddDiary)
+                {
+                    <form asp-controller="Dockets" asp-action="AddDiaryEntry" asp-route-id="@docket.Id" method="post" class="p-3 border-bottom d-flex flex-column gap-2">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="saps-field-group">
+                                    <i class="bi bi-list-task"></i>
+                                    <select asp-for="NewDiaryEntry.EntryTypeId" required aria-label="Action type">
+                                        <option value="">What was done?</option>
+                                        @foreach (var typeId in EDiaryEntryType.All)
+                                        {
+                                            <option value="@typeId">@EDiaryEntryType.GetName(typeId)</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="saps-field-group">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <input asp-for="NewDiaryEntry.ActionDate" type="datetime-local" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" max="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required aria-label="When" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="saps-field-group">
+                            <i class="bi bi-pencil"></i>
+                            <textarea asp-for="NewDiaryEntry.Notes" rows="2" maxlength="2000" required placeholder="Details of the action taken" aria-label="Diary notes"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <div class="form-check mb-0">
+                                <input asp-for="NewDiaryEntry.SharedWithComplainant" class="form-check-input" />
+                                <label asp-for="NewDiaryEntry.SharedWithComplainant" class="form-check-label small">Share with complainant <span class="text-muted">(they are notified and can read these notes)</span></label>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Entry</button>
+                        </div>
+                    </form>
+                }
+                @if (!diaryList.Any())
+                {
+                    <div class="saps-empty-state">
+                        <i class="bi bi-journal"></i>
+                        No diary entries yet.
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-unstyled p-4 mb-0 d-flex flex-column gap-3" style="max-height: 480px; overflow-y: auto;">
+                        @foreach (var entry in diaryList)
+                        {
+                            <li class="d-flex gap-3">
+                                <span class="flex-shrink-0 rounded-circle bg-primary-subtle text-primary-emphasis d-inline-flex align-items-center justify-content-center" style="width: 2.25rem; height: 2.25rem;">
+                                    <i class="bi @EDiaryEntryType.GetIcon(entry.EntryTypeId)"></i>
+                                </span>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="fw-semibold">@EDiaryEntryType.GetName(entry.EntryTypeId)</span>
+                                        @if (isStaffView)
+                                        {
+                                            <span class="badge @(entry.SharedWithComplainant ? "text-bg-info" : "text-bg-light border")">@(entry.SharedWithComplainant ? "Shared" : "Internal")</span>
+                                        }
+                                    </div>
+                                    <div class="small text-muted">@entry.ActionDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm") · @(entry.NavAuthor?.FullName ?? "-")</div>
+                                    <div class="mt-1" style="white-space: pre-wrap;">@entry.Notes</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+
+        @if (Model.IsStationStaff || Model.IsReceivingStaff || Model.CanSubmitEvidence || evidenceList.Any())
+        {
+            var pendingCount = evidenceList.Count(e => e.ReviewStatusId == EEvidenceReviewStatus.Pending);
+            <div class="card saps-card mt-4" id="evidence">
+                <div class="saps-panel-header">
+                    <span><i class="bi bi-images"></i> @(Model.IsStationStaff || Model.IsReceivingStaff ? "Evidence" : "Your Evidence")</span>
+                    <span>
+                        @if (pendingCount > 0 && Model.IsStationStaff)
+                        {
+                            <span class="badge text-bg-warning">@pendingCount to review</span>
+                        }
+                        <span class="badge text-bg-secondary">@evidenceList.Count</span>
+                    </span>
+                </div>
+                @if (!evidenceList.Any())
+                {
+                    <div class="saps-empty-state">
+                        <i class="bi bi-camera"></i>
+                        @(Model.IsStationStaff
+                            ? "No evidence uploaded yet. At least one accepted item is required before this docket can be closed."
+                            : "You can submit photos or documents that support your case, such as damage, receipts or proof of ownership.")
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3">
+                        <div class="row g-3">
+                            @for (var i = 0; i < evidenceList.Count; i++)
+                            {
+                                var item = evidenceList[i];
+                                var isImage = item.ContentType.StartsWith("image/");
+                                <div class="col-sm-6 col-xl-4">
+                                    <div class="border rounded-3 h-100 d-flex flex-column overflow-hidden">
+                                        <a asp-controller="Dockets" asp-action="Evidence" asp-route-id="@item.Id" target="_blank" rel="noopener" class="d-block bg-body-secondary text-center text-decoration-none" style="height: 150px;">
+                                            @if (isImage)
+                                            {
+                                                <img src="@Url.Action("Evidence", "Dockets", new { id = item.Id })" alt="@item.Description" loading="lazy" style="width: 100%; height: 150px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <span class="d-flex h-100 align-items-center justify-content-center"><i class="bi bi-file-earmark-pdf display-5 text-danger"></i></span>
+                                            }
+                                        </a>
+                                        <div class="p-2 small d-flex flex-column flex-grow-1">
+                                            <div class="fw-semibold">
+                                                @if (evidenceNumbers.TryGetValue(item.Id, out var number))
+                                                {
+                                                    <span class="text-muted">E@(number)</span><text> · </text>
+                                                }
+                                                @item.Description
+                                            </div>
+                                            @if (item.ReviewStatusId != EEvidenceReviewStatus.Accepted || item.SubmittedByComplainant)
+                                            {
+                                                <div>
+                                                    <span class="badge @EEvidenceReviewStatus.GetBadgeClass(item.ReviewStatusId)">@EEvidenceReviewStatus.GetName(item.ReviewStatusId)</span>
+                                                    @if (item.SubmittedByComplainant && Model.IsStationStaff)
+                                                    {
+                                                        <span class="badge text-bg-light border">From complainant</span>
+                                                    }
+                                                </div>
+                                            }
+                                            <div class="text-muted text-truncate" title="@item.OriginalFileName">@item.OriginalFileName · @FileSize(item.FileSizeBytes)</div>
+                                            <div class="text-muted">@(item.NavUploadedBy?.FullName ?? "-") · @item.UploadedDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</div>
+                                            @if (!string.IsNullOrWhiteSpace(item.ReviewNote))
+                                            {
+                                                <div class="text-muted fst-italic">“@item.ReviewNote”</div>
+                                            }
+                                            <a asp-controller="Dockets" asp-action="Evidence" asp-route-id="@item.Id" asp-route-download="true" class="mt-auto pt-1"><i class="bi bi-download"></i> Download</a>
+                                            @if (Model.CanReviewEvidence && item.ReviewStatusId == EEvidenceReviewStatus.Pending)
+                                            {
+                                                <div class="border-top mt-2 pt-2 d-flex flex-column gap-1">
+                                                    <form asp-controller="Dockets" asp-action="ReviewEvidence" asp-route-id="@docket.Id" method="post">
+                                                        <input type="hidden" name="evidenceId" value="@item.Id" />
+                                                        <input type="hidden" name="accept" value="true" />
+                                                        <button type="submit" class="btn btn-sm btn-success w-100"><i class="bi bi-check-lg"></i> Accept as evidence</button>
+                                                    </form>
+                                                    <form asp-controller="Dockets" asp-action="ReviewEvidence" asp-route-id="@docket.Id" method="post" class="d-flex gap-1">
+                                                        <input type="hidden" name="evidenceId" value="@item.Id" />
+                                                        <input type="hidden" name="accept" value="false" />
+                                                        <input name="note" class="form-control form-control-sm" maxlength="500" required placeholder="Reason to dismiss" aria-label="Reason to dismiss" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Dismiss"><i class="bi bi-x-lg"></i></button>
+                                                    </form>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (Model.CanAddEvidence || Model.CanSubmitEvidence)
+                {
+                    <form asp-controller="Dockets" asp-action="AddEvidence" asp-route-id="@docket.Id" method="post" enctype="multipart/form-data" class="saps-form-card-footer flex-column align-items-stretch gap-2" data-evidence-upload>
+                        <div class="saps-field-group">
+                            <i class="bi bi-images"></i>
+                            <input type="file" name="evidenceFiles" multiple required accept="image/jpeg,image/png,application/pdf" aria-label="Evidence files" data-max-files="10" />
+                        </div>
+                        <div class="d-flex flex-wrap gap-2" data-evidence-preview></div>
+                        <div class="saps-field-group">
+                            <i class="bi bi-card-text"></i>
+                            <input asp-for="NewEvidence.Description" maxlength="500" required
+                                   placeholder="@(Model.CanAddEvidence ? "Describe the evidence (e.g. photos of forced entry at back door)" : "Describe what these show (e.g. damage to the back door, receipt for the stolen TV)")" aria-label="Evidence description" />
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small">
+                                Select several photos at once — JPG, PNG or PDF, up to 10 files, 10 MB each.
+                                @(Model.CanAddEvidence ? "Evidence cannot be removed once uploaded." : "An officer will review your files before they are added to the case.")
+                            </span>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up"></i> @(Model.CanAddEvidence ? "Upload Evidence" : "Submit Evidence")</button>
+                        </div>
+                    </form>
+                }
+            </div>
         }
 
         <div class="card saps-card mt-4">
@@ -75,71 +410,48 @@
             else
             {
                 <div class="saps-form-card-footer">
-                    <span class="text-muted small">Messaging is only available to the complainant and station staff on this case.</span>
+                    <span class="text-muted small">
+                        @(isFinal
+                            ? $"This docket is {StatusLabel(docket.StatusId).ToLower()} — messaging is closed."
+                            : "Messaging is only available to the complainant and station staff on this case.")
+                    </span>
                 </div>
             }
         </div>
 
-        @if (Model.CanUpdateStatus)
-        {
-            <div class="card saps-card mt-4">
-                <div class="saps-form-card-header">
-                    <h2 class="h5 mb-0"><i class="bi bi-arrow-repeat text-primary"></i> Update Status</h2>
+        <div class="card saps-card mt-4">
+            <div class="saps-panel-header"><span><i class="bi bi-list-check"></i> Status History</span></div>
+            @if (!Model.StatusHistory.Any())
+            {
+                <div class="saps-empty-state">
+                    <i class="bi bi-list-check"></i>
+                    No status changes recorded.
                 </div>
-                <form asp-controller="Dockets" asp-action="UpdateStatus" asp-route-id="@docket.Id" method="post">
-                    <div class="p-4">
-                        <div class="saps-field-group">
-                            <i class="bi bi-flag"></i>
-                            <select asp-for="StatusUpdate.NewStatusId">
-                                <option value="@EDocketStatus.Open">Open</option>
-                                <option value="@EDocketStatus.UnderInvestigation">Under Investigation</option>
-                                <option value="@EDocketStatus.Referred">Referred</option>
-                                <option value="@EDocketStatus.Archived">Archived</option>
-                                <option value="@EDocketStatus.Closed">Closed</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="saps-form-card-footer">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Update Status</button>
-                    </div>
-                </form>
-            </div>
-        }
-
-        @if (Model.CanRefer)
-        {
-            <div class="card saps-card mt-4">
-                <div class="saps-form-card-header">
-                    <h2 class="h5 mb-0"><i class="bi bi-signpost-split text-primary"></i> Refer To Another Station</h2>
-                </div>
-                <form asp-controller="Dockets" asp-action="Refer" asp-route-id="@docket.Id" method="post">
-                    <div class="p-4">
-                        <div class="mb-3">
-                            <label asp-for="Referral.ToStationId" class="form-label small fw-semibold text-muted">Destination Station</label>
-                            <div class="saps-field-group">
-                                <i class="bi bi-building"></i>
-                                <select asp-for="Referral.ToStationId">
-                                    @foreach (var station in Model.AvailableStations)
-                                    {
-                                        <option value="@station.Id">@station.StationName</option>
-                                    }
-                                </select>
+            }
+            else
+            {
+                <ul class="list-unstyled p-4 mb-0 d-flex flex-column gap-3">
+                    @foreach (var entry in Model.StatusHistory.Reverse())
+                    {
+                        <li class="border-start border-3 ps-3">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                @if (entry.FromStatusId != null)
+                                {
+                                    <span class="badge @EDocketStatus.GetBadgeClass(entry.FromStatusId.Value)">@StatusLabel(entry.FromStatusId.Value)</span>
+                                    <i class="bi bi-arrow-right text-muted"></i>
+                                }
+                                <span class="badge @EDocketStatus.GetBadgeClass(entry.ToStatusId)">@StatusLabel(entry.ToStatusId)</span>
+                                <span class="small text-muted">@entry.ChangedDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm") · @(entry.NavChangedBy?.FullName ?? "-")</span>
                             </div>
-                        </div>
-                        <div class="mb-0">
-                            <label asp-for="Referral.Reason" class="form-label small fw-semibold text-muted"></label>
-                            <div class="saps-field-group">
-                                <i class="bi bi-chat-square-text"></i>
-                                <textarea asp-for="Referral.Reason" rows="3" placeholder="Why is this docket being referred?"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="saps-form-card-footer">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-signpost-split"></i> Refer Docket</button>
-                    </div>
-                </form>
-            </div>
-        }
+                            @if (!string.IsNullOrWhiteSpace(entry.Reason) && Model.IsStationStaff)
+                            {
+                                <div class="small mt-1" style="white-space: pre-wrap;">@entry.Reason</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
 
         <div class="card saps-card mt-4">
             <div class="saps-panel-header"><span><i class="bi bi-clock-history"></i> Referral History</span></div>
@@ -157,7 +469,10 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>From</th>
+                                <th>To</th>
                                 <th>Reason</th>
+                                <th>Outcome</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -165,7 +480,16 @@
                             {
                                 <tr>
                                     <td>@referral.ReferralDate.ToLocalTime()</td>
+                                    <td>@(referral.NavFromStation?.StationName ?? "-")</td>
+                                    <td>@(referral.NavToStation?.StationName ?? "-")</td>
                                     <td>@referral.Reason</td>
+                                    <td>
+                                        <span class="badge @EReferralStatus.GetBadgeClass(referral.StatusId)">@EReferralStatus.GetName(referral.StatusId)</span>
+                                        @if (!string.IsNullOrWhiteSpace(referral.ResponseNote))
+                                        {
+                                            <div class="small text-muted">@referral.ResponseNote</div>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -209,4 +533,241 @@
             }
         </div>
     </div>
+
+    @if (Model.IsStationStaff)
+    {
+        <div class="col-lg-4">
+            @if (isFinal)
+            {
+                <div class="alert alert-secondary small">
+                    <i class="bi bi-lock"></i> This docket is @StatusLabel(docket.StatusId).ToLower() and read-only.
+                    @(Model.CanUpdateStatus ? "As station commander you can reopen or archive it below." : "Only the station commander can reopen it.")
+                </div>
+            }
+            else if (docket.StatusId == EDocketStatus.PendingClosure && !Model.IsCommander)
+            {
+                <div class="alert alert-dark small">
+                    <i class="bi bi-hourglass-split"></i> Submitted for closure — waiting for the station commander to approve it.
+                </div>
+            }
+
+            @if (Model.CanUpdateStatus && docket.StatusId != EDocketStatus.PendingClosure)
+            {
+                <div class="card saps-card mb-4">
+                    <div class="saps-form-card-header">
+                        <h2 class="h6 mb-0"><i class="bi bi-arrow-repeat text-primary"></i> Update Status</h2>
+                    </div>
+                    <form asp-controller="Dockets" asp-action="UpdateStatus" asp-route-id="@docket.Id" method="post">
+                        <div class="p-3 d-flex flex-column gap-2">
+                            <div class="saps-field-group">
+                                <i class="bi bi-flag"></i>
+                                <select asp-for="StatusUpdate.NewStatusId" aria-label="New status">
+                                    @foreach (var statusId in Model.ManualTransitions)
+                                    {
+                                        <option value="@statusId">@(docket.StatusId == EDocketStatus.Closed && statusId == EDocketStatus.UnderInvestigation ? "Reopen (Under Investigation)" : StatusLabel(statusId))</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="saps-field-group">
+                                <i class="bi bi-chat-square-text"></i>
+                                <textarea asp-for="StatusUpdate.Reason" rows="2" maxlength="1000" required="@(EDocketStatus.RequiresReason(docket.StatusId) ? "required" : null)"
+                                          placeholder="@(EDocketStatus.RequiresReason(docket.StatusId) ? "Reason (required)" : "Note (optional)")" aria-label="Reason"></textarea>
+                            </div>
+                        </div>
+                        <div class="saps-form-card-footer">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            }
+
+            @if (Model.CanEditCase)
+            {
+                <div class="card saps-card mb-4">
+                    <div class="saps-form-card-header">
+                        <h2 class="h6 mb-0"><i class="bi bi-hash text-primary"></i> CAS Number</h2>
+                    </div>
+                    <form asp-controller="Dockets" asp-action="SetCasNumber" asp-route-id="@docket.Id" method="post">
+                        <div class="p-3">
+                            <div class="saps-field-group">
+                                <i class="bi bi-hash"></i>
+                                <input asp-for="CasUpdate.CasNumber" maxlength="50" required placeholder="e.g. CAS 123/09/2026" aria-label="CAS number" />
+                            </div>
+                        </div>
+                        <div class="saps-form-card-footer">
+                            <button type="submit" class="btn btn-outline-primary"><i class="bi bi-save"></i> @(docket.CasNumber == null ? "Assign" : "Update") CAS Number</button>
+                        </div>
+                    </form>
+                </div>
+            }
+
+            @if (Model.IsCommander && Model.CanEditCase)
+            {
+                <div class="card saps-card mb-4">
+                    <div class="saps-form-card-header">
+                        <h2 class="h6 mb-0"><i class="bi bi-person-badge text-primary"></i> Investigating Officer</h2>
+                    </div>
+                    @if (!Model.AssignableOfficers.Any())
+                    {
+                        <div class="p-3 small text-muted">There are no active officers at this station to assign.</div>
+                    }
+                    else
+                    {
+                        <form asp-controller="Dockets" asp-action="AssignOfficer" asp-route-id="@docket.Id" method="post">
+                            <div class="p-3">
+                                <div class="saps-field-group">
+                                    <i class="bi bi-person"></i>
+                                    <select asp-for="Assign.OfficerId" aria-label="Investigating officer">
+                                        @foreach (var officer in Model.AssignableOfficers)
+                                        {
+                                            <option value="@officer.Id">@officer.FullName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="saps-form-card-footer">
+                                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-person-check"></i> Assign</button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            }
+
+            @if (Model.CanRequestClosure)
+            {
+                <div class="card saps-card mb-4">
+                    <div class="saps-form-card-header">
+                        <h2 class="h6 mb-1"><i class="bi bi-archive text-success"></i> Close Docket</h2>
+                        <p class="text-muted small mb-0">
+                            @(Model.IsCommander
+                                ? "Closes the docket immediately."
+                                : "Sends the docket to the station commander for closure approval.")
+                        </p>
+                    </div>
+                    <form asp-controller="Dockets" asp-action="RequestClosure" asp-route-id="@docket.Id" method="post">
+                        <div class="p-3 d-flex flex-column gap-2">
+                            <div class="saps-field-group">
+                                <i class="bi bi-clipboard-check"></i>
+                                <select asp-for="Closure.ClosureOutcomeId" required aria-label="Closure outcome">
+                                    <option value="">Select outcome...</option>
+                                    @foreach (var outcomeId in EDocketClosureOutcome.All)
+                                    {
+                                        <option value="@outcomeId">@EDocketClosureOutcome.GetName(outcomeId)</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="saps-field-group">
+                                <i class="bi bi-journal-text"></i>
+                                <textarea asp-for="Closure.ClosureNotes" rows="4" maxlength="2000" required placeholder="Summary of the investigation and why it is being closed" aria-label="Closure notes"></textarea>
+                            </div>
+                            @if (evidenceNumbers.Count == 0)
+                            {
+                                <div class="small text-danger"><i class="bi bi-exclamation-triangle"></i> Upload (or accept) at least one piece of <a href="#evidence">evidence</a> before closing.</div>
+                            }
+                            else
+                            {
+                                <div class="small text-muted"><i class="bi bi-images"></i> @evidenceNumbers.Count accepted evidence item@(evidenceNumbers.Count == 1 ? "" : "s") on record.</div>
+                            }
+                        </div>
+                        <div class="saps-form-card-footer">
+                            <button type="submit" class="btn btn-success" disabled="@(evidenceNumbers.Count > 0 ? null : "disabled")"
+                                    onclick="return confirm('@(Model.IsCommander ? "Close this docket?" : "Submit this docket for closure?")');">
+                                <i class="bi bi-archive"></i> @(Model.IsCommander ? "Close Docket" : "Submit for Closure")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            }
+
+            @if (Model.CanRefer)
+            {
+                <div class="card saps-card mb-4">
+                    <div class="saps-form-card-header">
+                        <h2 class="h6 mb-0"><i class="bi bi-signpost-split text-primary"></i> Refer To Another Station</h2>
+                    </div>
+                    <form asp-controller="Dockets" asp-action="Refer" asp-route-id="@docket.Id" method="post">
+                        <div class="p-3">
+                            <div class="mb-3">
+                                <label asp-for="Referral.ToStationId" class="form-label small fw-semibold text-muted">Destination Station</label>
+                                <div class="saps-field-group">
+                                    <i class="bi bi-building"></i>
+                                    <select asp-for="Referral.ToStationId">
+                                        @foreach (var station in Model.AvailableStations)
+                                        {
+                                            <option value="@station.Id">@station.StationName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-0">
+                                <label asp-for="Referral.Reason" class="form-label small fw-semibold text-muted"></label>
+                                <div class="saps-field-group">
+                                    <i class="bi bi-chat-square-text"></i>
+                                    <textarea asp-for="Referral.Reason" rows="3" placeholder="Why is this docket being referred?"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="saps-form-card-footer">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-signpost-split"></i> Refer Docket</button>
+                        </div>
+                    </form>
+                </div>
+            }
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('[data-evidence-upload]').forEach(function (form) {
+            var input = form.querySelector('input[type=file]');
+            var preview = form.querySelector('[data-evidence-preview]');
+            var maxFiles = parseInt(input.dataset.maxFiles, 10) || 10;
+            var maxBytes = 10 * 1024 * 1024;
+            var urls = [];
+
+            input.addEventListener('change', function () {
+                urls.forEach(URL.revokeObjectURL);
+                urls = [];
+                preview.replaceChildren();
+
+                var files = Array.from(input.files);
+                var problem = files.length > maxFiles
+                    ? 'Please choose at most ' + maxFiles + ' files at a time.'
+                    : (files.find(function (f) { return f.size > maxBytes; }) || {}).name;
+                if (problem) {
+                    alert(files.length > maxFiles ? problem : problem + ' is larger than 10 MB.');
+                    input.value = '';
+                    return;
+                }
+
+                files.forEach(function (file) {
+                    var tile = document.createElement('div');
+                    tile.className = 'border rounded-2 overflow-hidden bg-body-secondary d-flex align-items-center justify-content-center';
+                    tile.style.width = '72px';
+                    tile.style.height = '72px';
+                    tile.title = file.name;
+                    if (file.type.startsWith('image/')) {
+                        var img = document.createElement('img');
+                        var url = URL.createObjectURL(file);
+                        urls.push(url);
+                        img.src = url;
+                        img.alt = file.name;
+                        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                        tile.appendChild(img);
+                    } else {
+                        tile.innerHTML = '<i class="bi bi-file-earmark-pdf fs-3 text-danger"></i>';
+                    }
+                    preview.appendChild(tile);
+                });
+
+                if (files.length) {
+                    var count = document.createElement('div');
+                    count.className = 'small text-muted align-self-center';
+                    count.textContent = files.length + ' file' + (files.length === 1 ? '' : 's') + ' selected';
+                    preview.appendChild(count);
+                }
+            });
+        });
+    </script>
+}

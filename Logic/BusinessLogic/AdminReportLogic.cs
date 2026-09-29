@@ -6,10 +6,6 @@ using static Logic.Enums.Enums;
 
 namespace Logic.BusinessLogic
 {
-    // Backs the admin's system-wide report exports (CSV/PDF). Each report is
-    // a flat, already-formatted table rather than a typed model, since the
-    // exporters and the picker page only ever need headers + string rows,
-    // regardless of which entity the data actually came from.
     public class AdminReportLogic : IAdminReportLogic
     {
         private readonly ApplicationDbContext _context;

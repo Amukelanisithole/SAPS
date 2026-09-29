@@ -6,11 +6,6 @@ using QuestPDF.Infrastructure;
 
 namespace Logic.BusinessLogic
 {
-    // Renders the stamped affidavit as a standalone legal-style PDF, mirroring
-    // the layout of the physical SAPS "Affidavit/Statement" form (deponent
-    // declaration, oath objection line, then the Commissioner of Oaths
-    // certification block) but with an officer's in-system certification
-    // standing in for the physical stamp.
     public class AffidavitPdfService : IAffidavitPdfService
     {
         public byte[] Generate(Affidavit affidavit, byte[]? verificationPhotoBytes)

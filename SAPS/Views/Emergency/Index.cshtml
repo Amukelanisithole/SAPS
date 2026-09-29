@@ -3,10 +3,6 @@
     ViewData["Title"] = "Emergency";
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
     var isComplainant = isAuthenticated && User.GetRoleName() == "Complainant";
-    // A logged-in visitor should stay inside their normal dashboard shell
-    // (sidebar, topbar) rather than dropping back to the public site chrome —
-    // only an anonymous visitor sees the plain public layout, since they
-    // have no dashboard to return to.
     Layout = isAuthenticated ? "_DashboardLayout" : "_Layout";
 }
 

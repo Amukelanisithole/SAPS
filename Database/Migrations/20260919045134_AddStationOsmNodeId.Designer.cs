@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260919045134_AddStationOsmNodeId")]
     partial class AddStationOsmNodeId
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

@@ -15,7 +15,6 @@ namespace Database.Migrations
     [Migration("20260918175004_AddRolesTable")]
     partial class AddRolesTable
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

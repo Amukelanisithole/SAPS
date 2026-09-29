@@ -3,10 +3,6 @@ using Logic.Validation;
 
 namespace Logic.DTO
 {
-    // Self-service counterpart to UpdateUserDTO — deliberately has no
-    // RoleId/StationId, since a user changing their own profile must never
-    // be able to grant themselves a different role or station; that stays
-    // admin-only via AdminUsersController/UpdateUserDTO.
     public class UpdateProfileDTO
     {
         [Required(ErrorMessage = "Full name is required")]

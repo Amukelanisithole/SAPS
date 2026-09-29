@@ -26,9 +26,6 @@ namespace SAPS.Extensions
             return user.FindFirst("FullName")?.Value ?? string.Empty;
         }
 
-        // Defaults to true (no popup) if the claim is somehow missing, rather
-        // than false — an absent claim should never read as "go bother this
-        // user," only an explicit "false" set at sign-in should.
         public static bool GetEmailVerified(this ClaimsPrincipal user)
         {
             var claim = user.FindFirst("EmailVerified")?.Value;

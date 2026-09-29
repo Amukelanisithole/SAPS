@@ -228,6 +228,25 @@ namespace Database.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<long?>("ClosedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ClosedDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("ClosureNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<long?>("ClosureOutcomeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InvestigatingOfficerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("LastOverdueAlertDate")
+                        .HasColumnType("datetime2(0)");
+
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2(0)");
 
@@ -247,6 +266,10 @@ namespace Database.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClosedByUserId");
+
+                    b.HasIndex("InvestigatingOfficerId");
 
                     b.HasIndex("ReportId")
                         .IsUnique();
@@ -287,6 +310,149 @@ namespace Database.Migrations
                     b.HasIndex("DocketId");
 
                     b.ToTable("DocketComments");
+                });
+
+            modelBuilder.Entity("Database.Entities.DocketDiaryEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ActionDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<long>("AuthorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<long>("DocketId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("EntryTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("SharedWithComplainant")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("DocketId");
+
+                    b.ToTable("DocketDiaryEntries");
+                });
+
+            modelBuilder.Entity("Database.Entities.DocketEvidence", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("DocketId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("ReviewStatusId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReviewedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReviewedDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<bool>("SubmittedByComplainant")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UploadedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UploadedDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocketId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("UploadedByUserId");
+
+                    b.ToTable("DocketEvidence");
+                });
+
+            modelBuilder.Entity("Database.Entities.DocketStatusHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ChangedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ChangedDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<long>("DocketId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("FromStatusId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<long>("ToStatusId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedByUserId");
+
+                    b.HasIndex("DocketId");
+
+                    b.ToTable("DocketStatusHistory");
                 });
 
             modelBuilder.Entity("Database.Entities.EmailTemplate", b =>
@@ -561,6 +727,13 @@ namespace Database.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<long?>("ReviewedByOfficerId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
@@ -579,6 +752,8 @@ namespace Database.Migrations
                     b.HasIndex("ReferenceNumber")
                         .IsUnique();
 
+                    b.HasIndex("ReviewedByOfficerId");
+
                     b.ToTable("PreliminaryReports");
                 });
 
@@ -596,6 +771,9 @@ namespace Database.Migrations
                     b.Property<long>("FromStationId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("PreviousDocketStatusId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -604,6 +782,19 @@ namespace Database.Migrations
                         .HasColumnType("datetime2(0)");
 
                     b.Property<long>("ReferredByOfficerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("RespondedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("RespondedDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("ResponseNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("ToStationId")
@@ -617,7 +808,9 @@ namespace Database.Migrations
 
                     b.HasIndex("ReferredByOfficerId");
 
-                    b.HasIndex("ToStationId");
+                    b.HasIndex("RespondedByUserId");
+
+                    b.HasIndex("ToStationId", "StatusId");
 
                     b.ToTable("Referrals");
                 });
@@ -833,6 +1026,16 @@ namespace Database.Migrations
 
             modelBuilder.Entity("Database.Entities.Docket", b =>
                 {
+                    b.HasOne("Database.Entities.User", "NavClosedBy")
+                        .WithMany()
+                        .HasForeignKey("ClosedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Database.Entities.User", "NavInvestigatingOfficer")
+                        .WithMany("NavDocketsInvestigating")
+                        .HasForeignKey("InvestigatingOfficerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Database.Entities.PreliminaryReport", "NavReport")
                         .WithOne("NavDocket")
                         .HasForeignKey("Database.Entities.Docket", "ReportId")
@@ -850,6 +1053,10 @@ namespace Database.Migrations
                         .HasForeignKey("StationId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("NavClosedBy");
+
+                    b.Navigation("NavInvestigatingOfficer");
 
                     b.Navigation("NavReport");
 
@@ -873,6 +1080,70 @@ namespace Database.Migrations
                         .IsRequired();
 
                     b.Navigation("NavAuthor");
+
+                    b.Navigation("NavDocket");
+                });
+
+            modelBuilder.Entity("Database.Entities.DocketDiaryEntry", b =>
+                {
+                    b.HasOne("Database.Entities.User", "NavAuthor")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Database.Entities.Docket", "NavDocket")
+                        .WithMany("NavDiaryEntries")
+                        .HasForeignKey("DocketId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("NavAuthor");
+
+                    b.Navigation("NavDocket");
+                });
+
+            modelBuilder.Entity("Database.Entities.DocketEvidence", b =>
+                {
+                    b.HasOne("Database.Entities.Docket", "NavDocket")
+                        .WithMany("NavEvidence")
+                        .HasForeignKey("DocketId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Database.Entities.User", "NavReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Database.Entities.User", "NavUploadedBy")
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("NavDocket");
+
+                    b.Navigation("NavReviewedBy");
+
+                    b.Navigation("NavUploadedBy");
+                });
+
+            modelBuilder.Entity("Database.Entities.DocketStatusHistory", b =>
+                {
+                    b.HasOne("Database.Entities.User", "NavChangedBy")
+                        .WithMany()
+                        .HasForeignKey("ChangedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Database.Entities.Docket", "NavDocket")
+                        .WithMany("NavStatusHistory")
+                        .HasForeignKey("DocketId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("NavChangedBy");
 
                     b.Navigation("NavDocket");
                 });
@@ -974,9 +1245,16 @@ namespace Database.Migrations
                         .HasForeignKey("NearestStationId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Database.Entities.User", "NavReviewedByOfficer")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByOfficerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("NavComplainant");
 
                     b.Navigation("NavNearestStation");
+
+                    b.Navigation("NavReviewedByOfficer");
                 });
 
             modelBuilder.Entity("Database.Entities.Referral", b =>
@@ -999,6 +1277,11 @@ namespace Database.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("Database.Entities.User", "NavRespondedBy")
+                        .WithMany()
+                        .HasForeignKey("RespondedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Database.Entities.Station", "NavToStation")
                         .WithMany("NavReferralsTo")
                         .HasForeignKey("ToStationId")
@@ -1010,6 +1293,8 @@ namespace Database.Migrations
                     b.Navigation("NavFromStation");
 
                     b.Navigation("NavReferredByOfficer");
+
+                    b.Navigation("NavRespondedBy");
 
                     b.Navigation("NavToStation");
                 });
@@ -1043,11 +1328,17 @@ namespace Database.Migrations
 
                     b.Navigation("NavComments");
 
+                    b.Navigation("NavDiaryEntries");
+
                     b.Navigation("NavEscalations");
+
+                    b.Navigation("NavEvidence");
 
                     b.Navigation("NavNotifications");
 
                     b.Navigation("NavReferrals");
+
+                    b.Navigation("NavStatusHistory");
                 });
 
             modelBuilder.Entity("Database.Entities.EmergencyAlert", b =>
@@ -1091,6 +1382,8 @@ namespace Database.Migrations
                     b.Navigation("NavAuditLogs");
 
                     b.Navigation("NavBackupRecordsPerformed");
+
+                    b.Navigation("NavDocketsInvestigating");
 
                     b.Navigation("NavDocketsReviewed");
 

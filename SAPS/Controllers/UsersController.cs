@@ -9,8 +9,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // The super admin's own capability: provisioning every other account
-    // (SAPS Officer, Station Commander, System Administrator, or Complainant).
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "SystemAdministrator")]

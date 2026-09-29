@@ -33,8 +33,6 @@ namespace SAPS.Controllers
             return result.ResultId == EResultValue.Success ? Ok(result) : BadRequest(result);
         }
 
-        // Available to any authenticated user — officers/complainants need the
-        // list to pick a station (e.g. when referring a docket).
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

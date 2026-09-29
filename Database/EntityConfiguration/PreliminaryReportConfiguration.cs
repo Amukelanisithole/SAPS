@@ -22,6 +22,8 @@ namespace Database.EntityConfiguration
             modelbuilder.Property(r => r.StatusId).IsRequired();
             modelbuilder.Property(r => r.ComplainantLatitude).IsRequired(false);
             modelbuilder.Property(r => r.ComplainantLongitude).IsRequired(false);
+            modelbuilder.Property(r => r.ReviewedByOfficerId).IsRequired(false);
+            modelbuilder.Property(r => r.RejectionReason).HasMaxLength(1000).IsRequired(false);
 
             modelbuilder.HasIndex(r => r.ReferenceNumber).IsUnique();
 
@@ -35,6 +37,12 @@ namespace Database.EntityConfiguration
                 .HasOne(r => r.NavNearestStation)
                 .WithMany(s => s.NavNearestReports)
                 .HasForeignKey(r => r.NearestStationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelbuilder
+                .HasOne(r => r.NavReviewedByOfficer)
+                .WithMany()
+                .HasForeignKey(r => r.ReviewedByOfficerId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

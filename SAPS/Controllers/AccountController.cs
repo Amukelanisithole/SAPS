@@ -9,9 +9,6 @@ using static Logic.Enums.Enums;
 
 namespace SAPS.Controllers
 {
-    // Cookie-based sign-in for the browser-facing site. This is deliberately
-    // separate from AuthController (api/Auth), which issues JWTs for external
-    // API clients — same IAuthService underneath, different session mechanism.
     public class AccountController : Controller
     {
         private readonly IAuthService _authService;
@@ -94,10 +91,6 @@ namespace SAPS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            // Must resolve HttpContext.User via the same (Cookie) scheme the page that
-            // rendered this form used — otherwise antiforgery sees "authenticated" at
-            // render time and "anonymous" (the default JWT scheme, with no bearer
-            // token on this request) at submit time, and rejects it with a 400.
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
@@ -128,9 +121,6 @@ namespace SAPS.Controllers
 
             await _passwordResetLogic.RequestResetAsync(request.Email, BuildResetLink);
 
-            // Same view regardless of whether the email existed — the message
-            // itself is worded generically so this can't be used to enumerate
-            // registered accounts.
             ViewBag.Submitted = true;
             return View(request);
         }

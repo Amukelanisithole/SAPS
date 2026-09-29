@@ -18,9 +18,6 @@ namespace Logic.BusinessLogic
             _auditLogWriter = auditLogWriter;
         }
 
-        // The student prototype has no real backup infrastructure to trigger, so this
-        // records the evidence FR-10/NFR-08 require (who ran it, when, whether restoration
-        // was later verified) rather than performing a literal database backup.
         public async Task<ResultModel<BackupRecord>> PerformBackupAsync(long adminId)
         {
             try

@@ -39,27 +39,16 @@ namespace Logic.DTO
         [Display(Name = "Declaration / Statement")]
         public string DeclarationText { get; set; } = string.Empty;
 
-        // Nullable so the form can force an explicit choice — a plain checkbox
-        // left untouched would silently submit as "no objection", which isn't
-        // the same thing as the deponent actually having made that choice.
         [Required(ErrorMessage = "Please indicate whether you object to taking the prescribed oath")]
         [Display(Name = "Objection to the prescribed oath")]
         public bool? ObjectionToOath { get; set; }
 
-        // Captured client-side via the browser Geolocation API, same as
-        // PreliminaryReportDTO — required so the affidavit can be routed to
-        // a station's review queue.
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
 
-        // Populated by the controller from the uploaded IFormFile before this
-        // DTO reaches the Logic layer, which stays free of ASP.NET Core types.
         public byte[]? VerificationPhotoBytes { get; set; }
         public string? VerificationPhotoFileName { get; set; }
 
-        // A photo/scan of the deponent's ID document — like VerificationPhotoBytes,
-        // populated by the controller post-binding, so required-ness is enforced
-        // there and in AffidavitLogic.SubmitAsync rather than via a DataAnnotation.
         public byte[]? IdDocumentBytes { get; set; }
         public string? IdDocumentFileName { get; set; }
         public string? IdDocumentContentType { get; set; }

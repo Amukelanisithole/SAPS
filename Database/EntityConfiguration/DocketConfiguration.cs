@@ -16,9 +16,13 @@ namespace Database.EntityConfiguration
             modelbuilder.Property(d => d.StatusId).IsRequired();
             modelbuilder.Property(d => d.OpenedDate).IsRequired().HasColumnType("datetime2(0)");
             modelbuilder.Property(d => d.LastUpdated).IsRequired().HasColumnType("datetime2(0)");
+            modelbuilder.Property(d => d.InvestigatingOfficerId).IsRequired(false);
+            modelbuilder.Property(d => d.ClosureOutcomeId).IsRequired(false);
+            modelbuilder.Property(d => d.ClosureNotes).HasMaxLength(2000).IsRequired(false);
+            modelbuilder.Property(d => d.ClosedDate).IsRequired(false).HasColumnType("datetime2(0)");
+            modelbuilder.Property(d => d.ClosedByUserId).IsRequired(false);
+            modelbuilder.Property(d => d.LastOverdueAlertDate).IsRequired(false).HasColumnType("datetime2(0)");
 
-            // A preliminary report can be converted at most once, so the docket
-            // holding the FK is the one-to-one dependent side.
             modelbuilder.HasIndex(d => d.ReportId).IsUnique();
 
             modelbuilder
@@ -37,6 +41,18 @@ namespace Database.EntityConfiguration
                 .HasOne(d => d.NavReviewingOfficer)
                 .WithMany(u => u.NavDocketsReviewed)
                 .HasForeignKey(d => d.ReviewingOfficerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelbuilder
+                .HasOne(d => d.NavInvestigatingOfficer)
+                .WithMany(u => u.NavDocketsInvestigating)
+                .HasForeignKey(d => d.InvestigatingOfficerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelbuilder
+                .HasOne(d => d.NavClosedBy)
+                .WithMany()
+                .HasForeignKey(d => d.ClosedByUserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

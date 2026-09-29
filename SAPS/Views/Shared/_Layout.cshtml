@@ -4,10 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
-        // Set before any CSS paints, so there's no flash of the wrong theme.
         (function () {
             var saved = null;
-            try { saved = localStorage.getItem('saps-theme'); } catch (e) { /* private browsing, etc. */ }
+            try { saved = localStorage.getItem('saps-theme'); } catch (e) { }
             document.documentElement.setAttribute('data-bs-theme', saved === 'light' ? 'light' : 'dark');
         })();
     </script>
@@ -81,7 +80,7 @@
                     </ul>
                     <ul class="navbar-nav align-items-lg-center">
                         <li class="nav-item me-lg-2">
-                            <a class="btn btn-danger btn-sm fw-bold" asp-controller="Emergency" asp-action="Index" title="Emergency">
+                            <a class="btn btn-danger btn-sm fw-bold saps-pulse-danger" asp-controller="Emergency" asp-action="Index" title="Emergency">
                                 <i class="bi bi-exclamation-triangle-fill"></i> Emergency
                             </a>
                         </li>

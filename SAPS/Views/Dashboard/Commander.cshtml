@@ -51,6 +51,108 @@
     </div>
 </div>
 
+@{
+    var queue = Model.WorkQueue;
+    var incoming = Model.IncomingReferrals.ToList();
+    var now = DateTime.UtcNow;
+    var decisions = new List<(string Kind, string Badge, long DocketId, string Incident, string Detail)>();
+    decisions.AddRange(queue.PendingClosure.Select(d => ("Approve closure", "text-bg-dark", d.Id, d.NavReport?.IncidentType ?? "-",
+        $"Submitted by {d.NavInvestigatingOfficer?.FullName ?? "officer"} · {EDocketClosureOutcome.GetName(d.ClosureOutcomeId ?? 0)}")));
+    decisions.AddRange(incoming.Select(r => ("Accept referral", "text-bg-warning", r.DocketId, r.NavDocket?.NavReport?.IncidentType ?? "-",
+        $"From {r.NavFromStation?.StationName ?? "another station"} · {r.Reason}")));
+    decisions.AddRange(queue.Unassigned.Select(d => ("Assign officer", "text-bg-info", d.Id, d.NavReport?.IncidentType ?? "-",
+        $"Opened {d.OpenedDate.ToLocalTime():dd MMM yyyy} · no investigating officer")));
+    decisions.AddRange(queue.Overdue.Where(o => o.Docket.InvestigatingOfficerId != null).Select(o => ("Overdue update", "text-bg-danger", o.Docket.Id, o.Docket.NavReport?.IncidentType ?? "-",
+        $"{o.Docket.NavInvestigatingOfficer?.FullName ?? "Officer"} · no diary entry for {(int)(now - o.LastActivity).TotalDays} days")));
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="saps-small-box slate">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@queue.PendingClosure.Count</div>
+                <div class="saps-small-box-label">Closures To Approve</div>
+            </div>
+            <i class="bi bi-archive saps-small-box-icon"></i>
+            <a asp-controller="Dockets" asp-action="Station" asp-route-statusId="@EDocketStatus.PendingClosure" class="saps-small-box-footer">View <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="saps-small-box gold">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@incoming.Count</div>
+                <div class="saps-small-box-label">Incoming Referrals</div>
+            </div>
+            <i class="bi bi-inbox saps-small-box-icon"></i>
+            <a asp-controller="Dockets" asp-action="Station" class="saps-small-box-footer">View <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="saps-small-box blue">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@queue.Unassigned.Count</div>
+                <div class="saps-small-box-label">Unassigned Dockets</div>
+            </div>
+            <i class="bi bi-person-dash saps-small-box-icon"></i>
+            <a href="#decisions" class="saps-small-box-footer">View <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="saps-small-box red">
+            <div class="saps-small-box-content">
+                <div class="saps-small-box-value">@queue.Overdue.Count</div>
+                <div class="saps-small-box-label">No Update In @Model.OverdueThresholdDays+ Days</div>
+            </div>
+            <i class="bi bi-alarm saps-small-box-icon"></i>
+            <a href="#decisions" class="saps-small-box-footer">View <i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="card saps-card mb-4" id="decisions">
+    <div class="saps-panel-header">
+        <span><i class="bi bi-clipboard-check"></i> Needs Your Decision</span>
+        <span class="badge @(decisions.Any() ? "text-bg-warning" : "text-bg-success")">@decisions.Count</span>
+    </div>
+    @if (!decisions.Any())
+    {
+        <div class="saps-empty-state">
+            <i class="bi bi-check2-all"></i>
+            Nothing is waiting on you right now.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Docket #</th>
+                        <th>Incident</th>
+                        <th>Details</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in decisions)
+                    {
+                        <tr>
+                            <td><span class="badge @item.Badge">@item.Kind</span></td>
+                            <td>@item.DocketId</td>
+                            <td>@item.Incident</td>
+                            <td class="text-truncate small" style="max-width: 340px;" title="@item.Detail">@item.Detail</td>
+                            <td>
+                                <a asp-controller="Dockets" asp-action="Details" asp-route-id="@item.DocketId" class="btn btn-sm btn-outline-primary">Open</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
 @if (Model.ActiveEmergencyAlertCount > 0)
 {
     <div class="card mb-4" style="border: 2px solid #dc3545;">

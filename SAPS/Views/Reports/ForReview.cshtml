@@ -65,7 +65,12 @@ else
                             <td>@report.IncidentType</td>
                             <td>@report.IncidentLocation</td>
                             <td>@report.SubmissionTimestamp.ToLocalTime()</td>
-                            <td><span class="badge @EReportStatus.GetBadgeClass(report.StatusId)">@EReportStatus.GetName(report.StatusId)</span></td>
+                            <td><span class="badge @EReportStatus.GetBadgeClass(report.StatusId)">@EReportStatus.GetName(report.StatusId)</span>
+                                @if (report.StatusId == EReportStatus.UnderReview && report.NavReviewedByOfficer != null)
+                                {
+                                    <div class="small text-muted">by @report.NavReviewedByOfficer.FullName</div>
+                                }
+                            </td>
                             <td>
                                 <a asp-controller="Reports" asp-action="Details" asp-route-id="@report.Id" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-clipboard-check"></i> Review

@@ -79,7 +79,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         let map, marker;
-        const defaultCenter = [-30.5595, 22.9375]; // South Africa, roughly centered
+        const defaultCenter = [-30.5595, 22.9375];
 
         function placeMarker(lat, lng) {
             document.getElementById('latInput').value = lat;
@@ -114,9 +114,6 @@
             placeMarker(e.latlng.lat, e.latlng.lng);
         });
 
-        // If the form is redisplayed after a validation error unrelated to location
-        // (e.g. duplicate name), the coordinates already posted back — restore the
-        // marker instead of making the admin re-pick the location from scratch.
         (function restorePreviousSelection() {
             const existingLat = document.getElementById('latInput').value;
             const existingLng = document.getElementById('lngInput').value;
@@ -126,9 +123,6 @@
             }
         })();
 
-        // Nominatim (OpenStreetMap's free geocoder) — no API key needed. Its usage
-        // policy asks for light, non-bulk use, which fits an admin picking a
-        // handful of station addresses by hand.
         document.getElementById('locateAddressBtn').addEventListener('click', function () {
             const address = document.getElementById('addressInput').value;
             if (!address) return;

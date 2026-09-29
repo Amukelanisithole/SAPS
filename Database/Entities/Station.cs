@@ -7,14 +7,8 @@ namespace Database.Entities
         public string Province { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string ContactNumber { get; set; } = string.Empty;
-        // Nullable so existing stations created before this feature keep working —
-        // a station without coordinates just can't be matched as anyone's nearest.
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        // Set when this station was auto-created from a real-world OpenStreetMap
-        // police-station lookup rather than picked manually by an admin — lets
-        // later reports resolving to the same real station reuse this row
-        // instead of creating a duplicate.
         public long? OsmNodeId { get; set; }
 
         public ICollection<User> NavUsers { get; set; } = new List<User>();

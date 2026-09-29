@@ -3,9 +3,6 @@ using System.Text.RegularExpressions;
 
 namespace Logic.Validation
 {
-    // Requires at least 8 characters with one uppercase letter, one lowercase
-    // letter, one digit, and one special character — replaces the bare
-    // [MinLength(6)] that let passwords like "aaaaaa" through.
     public class PasswordComplexityAttribute : ValidationAttribute
     {
         private static readonly Regex HasUpper = new("[A-Z]", RegexOptions.Compiled);
